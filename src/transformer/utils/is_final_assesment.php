@@ -14,25 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace src\transformer\utils\get_activity;
+namespace src\transformer\utils;
 defined('MOODLE_INTERNAL') || die();
 
-use src\transformer\utils as utils;
-
-function course_assignment(array $config, $cmid, $name, $lang) {
-    $courseassignment = [
-        'id' => $config['app_url'].'/mod/assign/view.php?id='.$cmid,
-        'definition' => [
-            'type' => 'http://adlnet.gov/expapi/activities/assessment',
-            'name' => [
-                $lang => $name,
-            ],
-        ],
-    ];
-
-    if (utils\is_final_assesment($config, $cmid)) {
-        $courseassignment['definition']['extensions']['https://api.2035.university/activity_type'] = 'Итоговая аттестация';
+function is_final_assesment($config, $cmid) {
+    $finalassementcmids = get_config('logstore_xapi', 'finalassementcmids');
+    if ($finalassementcmids && false === is_array($finalassementcmids)) {
+        $finalassementcmids = json_decode($finalassementcmids, $asarray = true);
+    }
+    if (false === is_array($finalassementcmids) || [] === $finalassementcmids) {
+        return false;
     }
 
-    return $courseassignment;
+    return in_array($cmid, $finalassementcmids);
 }
