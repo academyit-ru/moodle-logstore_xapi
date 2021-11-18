@@ -44,5 +44,9 @@ function course_module(array $config, $course, $cmid, $xapitype) {
         $object['definition']['extensions']['https://w3id.org/learning-analytics/learning-management-system/external-id'] = $moduleidnumber;
     }
 
+    if (utils\is_final_assesment($config, $cmid)) {
+        $courseassignment['definition']['extensions']['https://api.2035.university/activity_type'] = 'Итоговая аттестация';
+    }
+
     return $object;
 }
