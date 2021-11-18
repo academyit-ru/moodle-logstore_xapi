@@ -52,7 +52,7 @@ class store extends php_obj implements log_writer {
      */
     public function is_event_ignored($event) {
         global $DB;
-        
+
         $allowguestlogging = $this->get_config('logguests', 1);
         if ((!CLI_SCRIPT || PHPUNIT_TEST) && !$allowguestlogging && isguestuser()) {
             // Always log inside CLI scripts because we do not login there.
@@ -71,7 +71,7 @@ class store extends php_obj implements log_writer {
         }
         $userids = $DB->get_fieldset_select('user', 'id', 'auth = ?', ['untissooauth']);
         $isdisabledevent = $isdisabledevent || !in_array($event->userid, $userids);
-        
+
         return $isdisabledevent;
     }
 
@@ -104,6 +104,11 @@ class store extends php_obj implements log_writer {
         $loginfo = function ($message = '') {
             debugging($message, DEBUG_DEVELOPER);
         };
+        $loader = 'moodle_curl_lrs';
+        $cfgloader = get_config('logstore_xapi', 'loader');
+        if (false !== $cfgloader && in_array($cfgloader, ['log', 'lrs', 'moodle_curl_lrs'])) {
+            $loader = $cfgloader;
+        }
         $handlerconfig = [
             'log_error' => $logerror,
             'log_info' => $loginfo,
@@ -123,7 +128,7 @@ class store extends php_obj implements log_writer {
                 'app_url' => $CFG->wwwroot,
             ],
             'loader' => [
-                'loader' => 'moodle_curl_lrs',
+                'loader' => $loader,
                 'lrs_endpoint' => $this->get_config('endpoint', ''),
                 'lrs_token' => $this->get_config('token', ''),
                 'lrs_max_batch_size' => $this->get_max_batch_size(),
