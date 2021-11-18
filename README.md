@@ -8,3 +8,18 @@
 - View the supported events in [our `get_event_function_map` function](/src/transformer/get_event_function_map.php).
 - Change existing statements for the supported events using [our change statements guide](/docs/change-statements.md).
 - Create statements using [our new statements guide](/docs/new-statements.md).
+
+
+Что бы задать id модулей **Итоговой аттестации** нужно задать массив *finalassementcmids* в настройках плагина.
+Для этого в *config.php* в свойство *$CFG->forced_plugin_settings* нужно добавить массив *logstore_xapi*, в котором задать массив *finalassementcmids*.
+Массив должен содержать id модулей из таблицы course_modules.
+```php
+// Пример настройки для config.php
+$CFG->forced_plugin_settings = [
+    'logstore_xapi' => [
+        'finalassementcmids' => [111, 222]
+        // 'finalassementcmids' => json_encode([111, 222])
+    ],
+];
+
+```
