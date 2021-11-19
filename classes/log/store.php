@@ -69,8 +69,10 @@ class store extends php_obj implements log_writer {
         if ($isdisabledevent) {
             return $isdisabledevent;
         }
+        // Так как xapi используется только для интеграции с УНТИ то учитываем только их учётки
         $userids = $DB->get_fieldset_select('user', 'id', 'auth = ?', ['untissooauth']);
-        $isdisabledevent = $isdisabledevent || !in_array($event->userid, $userids);
+        $userfromunti = in_array($event->userid, $userids) || in_array($event->relateduserid, $userids);
+        $isdisabledevent = $isdisabledevent || false === $userfromunti;
 
         return $isdisabledevent;
     }
