@@ -19,6 +19,7 @@ defined('MOODLE_INTERNAL') || die();
 
 use tool_log\log\manager;
 use logstore_xapi\log\store;
+use moodle_database;
 
 class logsync_task extends \core\task\scheduled_task {
 
@@ -32,6 +33,7 @@ class logsync_task extends \core\task\scheduled_task {
     }
 
     private function reformat_from_standard() {
+        /** @var moodle_database $DB */
         global $DB;
 
         mtrace('    Requestion unti users');
@@ -45,7 +47,15 @@ class logsync_task extends \core\task\scheduled_task {
 
         foreach ($courses as $courseid) {
             mtrace(sprintf('    Requestion events for courseid:%d', $courseid));
-            $events = $DB->get_records_select('logstore_standard_log', 'courseid = ? AND userid IN (' . implode(',', $userids) . ')', [$courseid]);
+
+            $conditionssql = "courseid = :courseid AND (userid %s OR relateduserid %s)";
+            list($inuseridssql, $inuseridsparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'u');
+            list($relateduseridssql, $relateduseridparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'ru');
+            $conditionssql = vsprintf($conditionssql, [$inuseridssql, $relateduseridssql]);
+            $sqlparams = array_merge(['courseid' => $courseid, $inuseridsparams, $relateduseridparams]);
+
+            $events = $DB->get_records_select('logstore_standard_log', $conditionssql, $sqlparams);
+
             mtrace(sprintf('    event count for courseid:%d - %d', $courseid, count($events)));
             foreach ($events as $key => $event) {
                 if (!$xapilogstore->is_event_ignored($event)) {
