@@ -34,14 +34,19 @@ class logsync_task extends \core\task\scheduled_task {
     private function reformat_from_standard() {
         global $DB;
 
-
+        mtrace('    Requestion unti users');
         $userids = $DB->get_fieldset_select('user', 'id', "institution = '" . get_string('institution', 'logstore_xapi'). "'");
+        mtrace(sprintf("    userids count: %d", count($userids)));
+
         $manager = get_log_manager();
         $xapilogstore = new store($manager);
         $courses = explode(',', get_config('logstore_xapi', 'courses'));
+        mtrace(sprintf("    courses count: %d", count($courses)));
 
         foreach ($courses as $courseid) {
+            mtrace(sprintf('    Requestion events for courseid:%d', $courseid));
             $events = $DB->get_records_select('logstore_standard_log', 'courseid = ? AND userid IN (' . implode(',', $userids) . ')', [$courseid]);
+            mtrace(sprintf('    event count for courseid:%d - %d', $courseid, count($events)));
             foreach ($events as $key => $event) {
                 if (!$xapilogstore->is_event_ignored($event)) {
                     $DB->insert_record('logstore_xapi_log', $event);
