@@ -45,7 +45,7 @@ function course_module(array $config, $course, $cmid, $xapitype) {
     }
 
     if (utils\is_final_assesment($config, $cmid)) {
-        $courseassignment['definition']['extensions']['https://api.2035.university/activity_type'] = 'Итоговая аттестация';
+        $object['definition']['extensions']['https://api.2035.university/activity_type'] = 'Итоговая аттестация';
     }
 
     return $object;
