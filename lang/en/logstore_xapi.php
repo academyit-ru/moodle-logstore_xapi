@@ -52,3 +52,5 @@ $string['send_response_choices_desc'] = 'Statements for multiple choice question
 $string['institution'] = 'АНО "Университет Национальной технологической инициативы 2035"';
 $string['courses'] = 'Курсы';
 $string['token'] = 'Токен';
+$string['tasksync'] = 'Синхронизировать журналы событий';
+$string['taskemitfailed'] = 'Отправка следа из журнала logstore_xapi_failed_log';
