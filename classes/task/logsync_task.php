@@ -52,7 +52,7 @@ class logsync_task extends \core\task\scheduled_task {
             list($inuseridssql, $inuseridsparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'u');
             list($relateduseridssql, $relateduseridparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'ru');
             $conditionssql = vsprintf($conditionssql, [$inuseridssql, $relateduseridssql]);
-            $sqlparams = array_merge(['courseid' => $courseid, $inuseridsparams, $relateduseridparams]);
+            $sqlparams = array_merge(['courseid' => $courseid], $inuseridsparams, $relateduseridparams);
 
             $events = $DB->get_records_select('logstore_standard_log', $conditionssql, $sqlparams);
 
