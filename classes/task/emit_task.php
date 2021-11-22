@@ -67,7 +67,19 @@ class emit_task extends \core\task\scheduled_task {
     private function store_failed_events($events) {
         global $DB;
         $failedevents = $this->get_failed_events($events);
+        if (0 === count($failedevents)) {
+            return false;
+        }
+        $msg = sprintf("[TIME:%d] Storing events that faild to emit: Count %d, Records: %s",
+            time(),
+            count($failedevents),
+            json_encode($failedevents)
+        );
+        mtrace('    > ' . $msg);
+        debugging($msg, DEBUG_ALL);
         $DB->insert_records('logstore_xapi_failed_log', $failedevents);
+
+        return true;
     }
 
     /**

@@ -29,12 +29,26 @@ function load(array $config, array $events) {
     $sendhttpstatements = function (array $config, array $statements) {
         $endpoint = $config['lrs_endpoint'];
         $token = $config['lrs_token'];
+        $curlsettings = [];
         $proxyendpoint = $config['lrs_proxy_endpoint'];
+        if (isset($proxyendpoint)) {
+            $curlsettings['proxy'] = true;
+            $curlsettings['proxy_host'] = $proxyendpoint;
+        }
+        $noop =  function () {};
+        $logerror = $config['log_error'] ?? $noop;
+        $loginfo = $config['log_info'] ?? $noop;
 
         $url = utils\correct_endpoint($endpoint).'/statements';
         $postdata = json_encode($statements);
 
-        $request = new \curl();
+        $curlsettingscfg = get_config('logstore_xapi', 'curlsettings');
+        $curlsettingscfg = json_decode($curlsettingscfg, true);
+        if (is_array($curlsettingscfg)) {
+            $curlsettings = array_merge($curlsettings, $curlsettingscfg);
+        }
+        $request = new \curl($curlsettings);
+
         $responsetext = $request->post($url, $postdata, [
             'CURLOPT_HTTPHEADER' => [
                 'Authorization: Basic '.$token,
@@ -43,15 +57,21 @@ function load(array $config, array $events) {
             ],
         ]);
 
-        echo '<pre>';
-        print_r($responsetext);
-        echo '</pre>';
+        $responsecode = (int) $request->info['http_code'];
 
-        $responsecode = $request->info['http_code'];
-
-        if ($responsecode !== 200) {
+        if ($responsecode !== 200 || $request->error) {
+            $errmessage = sprintf('[LOADER:MOODLE_CURL_LRS][ERROR] Context: %s', json_encode([
+                'curl response' => $responsetext,
+                'curl error' => $request->error,
+                'curl info' => $request->info
+            ]));
+            call_user_func($logerror, $errmessage);
             throw new \Exception($responsetext);
         }
+        call_user_func($loginfo, sprintf('[LOADER:MOODLE_CURL_LRS][INFO] Context %s', json_encode([
+                'curl response' => $responsetext,
+                'curl info' => $request->info
+            ])));
     };
     return utils\load_in_batches($config, $events, $sendhttpstatements);
 }

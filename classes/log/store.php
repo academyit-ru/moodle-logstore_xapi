@@ -47,7 +47,7 @@ class store extends php_obj implements log_writer {
     /**
      * Should the event be ignored (not logged)? Overrides helper_writer.
      * @param event_base $event
-     * @return bool
+     * @return bool true если нужно пропустить событие
      *
      */
     public function is_event_ignored($event) {
@@ -60,21 +60,40 @@ class store extends php_obj implements log_writer {
         }
 
         $enabledevents = explode(',', $this->get_config('routes', ''));
-        $isdisabledevent = !in_array($event->eventname, $enabledevents);
-        if ($isdisabledevent) {
-            return $isdisabledevent;
+        if (false === in_array($event->eventname, $enabledevents)) {
+            return true;
+        }
+        $extradebugxapistore = (bool) get_config('logstore_xapi', 'extradebugxapistore');
+
+        if (true === $extradebugxapistore) {
+            error_log(sprintf('[%s][DEBUG]: Checking course %d', __CLASS__, $event->courseid));
         }
         $courses = explode(',', get_config('logstore_xapi', 'courses'));
-        $isdisabledevent = $isdisabledevent || !in_array($event->courseid, $courses);
-        if ($isdisabledevent) {
-            return $isdisabledevent;
+        if (false === in_array($event->courseid, $courses)) {
+            if (true === $extradebugxapistore) {
+                error_log(sprintf('[%s][DEBUG]: Course not enabled %d', __CLASS__, $event->courseid));
+            }
+            return true;
         }
+
         // Так как xapi используется только для интеграции с УНТИ то учитываем только их учётки
+        if (true === $extradebugxapistore) {
+            error_log(sprintf('[%s][DEBUG]: Checking user or relateduser are from UNTI userid: %d relateduserid: %d', __CLASS__, $event->userid, $event->relateduserid));
+        }
         $userids = $DB->get_fieldset_select('user', 'id', 'auth = ?', ['untissooauth']);
         $userfromunti = in_array($event->userid, $userids) || in_array($event->relateduserid, $userids);
-        $isdisabledevent = $isdisabledevent || false === $userfromunti;
+        if (false === $userfromunti) {
+            if (true === $extradebugxapistore) {
+                error_log(sprintf('[%s][DEBUG]: User (Related user) not from UNTI userid: %d (relateduserid: %d)', __CLASS__, $event->userid, $event->relateduserid));
+            }
+            return true;
+        }
 
-        return $isdisabledevent;
+
+        if (true === $extradebugxapistore) {
+            error_log(sprintf('Event with id:%d will be stored', $event->id));
+        }
+        return false;
     }
 
     /**

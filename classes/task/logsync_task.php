@@ -39,6 +39,10 @@ class logsync_task extends \core\task\scheduled_task {
         mtrace('    Requestion unti users');
         $userids = $DB->get_fieldset_select('user', 'id', "institution = '" . get_string('institution', 'logstore_xapi'). "'");
         mtrace(sprintf("    userids count: %d", count($userids)));
+        if (0 === count($userids)) {
+            mtrace(sprintf("    There are no users that can generate xAPI log. Exiting"));
+            return false;
+        }
 
         $manager = get_log_manager();
         $xapilogstore = new store($manager);
@@ -57,11 +61,14 @@ class logsync_task extends \core\task\scheduled_task {
             $events = $DB->get_records_select('logstore_standard_log', $conditionssql, $sqlparams);
 
             mtrace(sprintf('    event count for courseid:%d - %d', $courseid, count($events)));
+            $synced = 0;
             foreach ($events as $key => $event) {
                 if (!$xapilogstore->is_event_ignored($event)) {
+                    mtrace('Event will be synced %s eventid:%d courseid:%d userid:%d, relateduserid:%d', $event->id, $event->courseid, $event->userid, $event->relateduserid);
                     $DB->insert_record('logstore_xapi_log', $event);
                 }
             }
+            mtrace('Event synced %d', $synced);
         }
     }
 
