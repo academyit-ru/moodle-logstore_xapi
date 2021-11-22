@@ -67,6 +67,7 @@ class logsync_task extends \core\task\scheduled_task {
                     $msg = sprintf('    Event will be synced eventname:%s eventid:%d courseid:%d userid:%d, relateduserid:%d', $event->eventname, $event->id, $event->courseid, $event->userid, $event->relateduserid);
                     mtrace($msg);
                     $DB->insert_record('logstore_xapi_log', $event);
+                    $synced++;
                 }
             }
             mtrace(sprintf('Event synced %d', $synced));
