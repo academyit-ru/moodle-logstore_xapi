@@ -64,7 +64,8 @@ class logsync_task extends \core\task\scheduled_task {
             $synced = 0;
             foreach ($events as $key => $event) {
                 if (!$xapilogstore->is_event_ignored($event)) {
-                    mtrace('Event will be synced %s eventid:%d courseid:%d userid:%d, relateduserid:%d', $event->id, $event->courseid, $event->userid, $event->relateduserid);
+                    $msg = sprintf('    Event will be synced eventname:%s eventid:%d courseid:%d userid:%d, relateduserid:%d', $event->name, $event->id, $event->courseid, $event->userid, $event->relateduserid);
+                    mtrace($msg);
                     $DB->insert_record('logstore_xapi_log', $event);
                 }
             }
