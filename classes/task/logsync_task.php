@@ -70,7 +70,7 @@ class logsync_task extends \core\task\scheduled_task {
                     $synced++;
                 }
             }
-            mtrace(sprintf('Event synced %d', $synced));
+            mtrace(sprintf('Synced events count: %d for course: %d', $synced, $event->courseid));
         }
     }
 
