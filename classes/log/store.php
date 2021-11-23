@@ -120,10 +120,10 @@ class store extends php_obj implements log_writer {
         global $CFG;
         require(__DIR__ . '/../../version.php');
         $logerror = function ($message = '') {
-            debugging($message, DEBUG_NORMAL);
+            error_log('[LOGSTORE_XAPI][ERROR] ' . $message);
         };
         $loginfo = function ($message = '') {
-            debugging($message, DEBUG_DEVELOPER);
+            error_log('[LOGSTORE_XAPI][INFO] ' . $message);
         };
         $loader = 'moodle_curl_lrs';
         $cfgloader = get_config('logstore_xapi', 'loader');
