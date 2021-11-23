@@ -159,6 +159,9 @@ class store extends php_obj implements log_writer {
         return $loadedevents;
     }
 
+    /**
+     * TODO: Убрать этот метод, так как судя по всему он не используется
+     */
     public function get_userinfo(array $events) {
         global $DB;
         global $CFG;
