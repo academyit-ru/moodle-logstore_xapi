@@ -29,10 +29,14 @@ function assignment_graded(array $config, \stdClass $event) {
     $assignment = $repo->read_record_by_id('assign', $grade->assignment);
     $lang = utils\get_course_lang($course);
 
-    $gradecomment = $repo->read_record('assignfeedback_comments', [
-        'assignment' => $grade->assignment,
-        'grade' => $grade->id
-    ])->commenttext;
+    try {
+        $gradecomment = $repo->read_record('assignfeedback_comments', [
+            'assignment' => $grade->assignment,
+            'grade' => $grade->id
+        ])->commenttext;
+    } catch (\Exception $e) {
+        $gradecomment = null;
+    }
     $gradeitems = $repo->read_record('grade_items', [
         'itemmodule' => 'assign',
         'iteminstance' => $grade->assignment
