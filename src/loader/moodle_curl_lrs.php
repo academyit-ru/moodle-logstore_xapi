@@ -30,7 +30,7 @@ function load(array $config, array $events) {
         $endpoint = $config['lrs_endpoint'];
         $token = $config['lrs_token'];
         $curlsettings = [];
-        $proxyendpoint = $config['lrs_proxy_endpoint'];
+        $proxyendpoint = $config['lrs_proxy_endpoint'] ?? null;
         if (isset($proxyendpoint)) {
             $curlsettings['proxy'] = true;
             $curlsettings['proxy_host'] = $proxyendpoint;
@@ -69,9 +69,9 @@ function load(array $config, array $events) {
             throw new \Exception($responsetext);
         }
         call_user_func($loginfo, sprintf('[LOADER:MOODLE_CURL_LRS][INFO] Context %s', json_encode([
-                'curl response' => $responsetext,
-                'curl info' => $request->info
-            ])));
+            'curl response' => $responsetext,
+            'curl info' => $request->info
+        ])));
     };
     return utils\load_in_batches($config, $events, $sendhttpstatements);
 }
