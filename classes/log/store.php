@@ -59,11 +59,18 @@ class store extends php_obj implements log_writer {
             return true;
         }
 
+        $extradebugxapistore = (bool) get_config('logstore_xapi', 'extradebugxapistore');
+        if (true === $extradebugxapistore) {
+            error_log(sprintf('[%s][DEBUG]: Checking event name %s', __CLASS__, $event->eventname));
+        }
+
         $enabledevents = explode(',', $this->get_config('routes', ''));
         if (false === in_array($event->eventname, $enabledevents)) {
+            if (true === $extradebugxapistore) {
+                error_log(sprintf('[%s][DEBUG]: Event name %s disabled', __CLASS__, $event->eventname));
+            }
             return true;
         }
-        $extradebugxapistore = (bool) get_config('logstore_xapi', 'extradebugxapistore');
 
         if (true === $extradebugxapistore) {
             error_log(sprintf('[%s][DEBUG]: Checking course %d', __CLASS__, $event->courseid));
@@ -89,10 +96,6 @@ class store extends php_obj implements log_writer {
             return true;
         }
 
-
-        if (true === $extradebugxapistore) {
-            error_log(sprintf('Event with id:%d will be stored', $event->id));
-        }
         return false;
     }
 
