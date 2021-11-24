@@ -68,7 +68,7 @@ function load(array $config, array $events) {
             call_user_func($logerror, $errmessage);
             throw new \Exception($responsetext);
         }
-        call_user_func($loginfo, sprintf('[LOADER:MOODLE_CURL_LRS][INFO] Request successfull Context %s', json_encode([
+        call_user_func($loginfo, sprintf('[LOADER:MOODLE_CURL_LRS][INFO] Context %s', json_encode([
             'curl info' => $request->info
         ])));
     };
