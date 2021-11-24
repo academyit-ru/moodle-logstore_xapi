@@ -69,10 +69,9 @@ class emit_task extends \core\task\scheduled_task {
         if (0 === count($failedevents)) {
             return false;
         }
-        $msg = sprintf("[TIME:%d] Storing events that faild to emit: Count %d, Records: %s",
+        $msg = sprintf("[TIME:%d] Storing events that faild to emit: Count %d",
             time(),
             count($failedevents),
-            json_encode($failedevents)
         );
         mtrace('    > ' . $msg);
         debugging($msg, DEBUG_ALL);
