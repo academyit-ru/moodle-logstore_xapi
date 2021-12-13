@@ -60,15 +60,30 @@ function load(array $config, array $events) {
         $responsecode = (int) $request->info['http_code'];
 
         if ($responsecode !== 200 || $request->error) {
-            $errmessage = sprintf('[LOADER:MOODLE_CURL_LRS][ERROR] Context: %s', json_encode([
+            $errcontext = json_encode([
                 'curl response' => $responsetext,
                 'curl error' => $request->error,
                 'curl info' => $request->info
-            ]));
+            ]);
+            $localerrorid = 'IT-ERR-' . sha1($errcontext);
+            $errmessage = sprintf('[LOADER:MOODLE_CURL_LRS][ERROR] localErrorId: %s, Context: %s', $errcontext);
             call_user_func($logerror, $errmessage);
+
+            $erronousrequestinfo = json_encode([
+                'curl info' => $request->info
+            ]);
+            $erronousrequestline = sprintf(
+                '[LOADER:MOODLE_CURL_LRS][ERROR][ERRONOUS_REQUEST_INFO] localErrorId: %s Request info: %s, Request body: %s',
+                $localerrorid,
+                $erronousrequestinfo,
+                $postdata
+            );
+            call_user_func($logerror, $erronousrequestline);
+
             throw new \Exception($responsetext);
         }
         call_user_func($loginfo, sprintf('[LOADER:MOODLE_CURL_LRS][INFO] Context %s', json_encode([
+            'curl response' => $responsetext,
             'curl info' => $request->info
         ])));
     };
