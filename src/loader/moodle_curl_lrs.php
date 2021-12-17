@@ -66,7 +66,7 @@ function load(array $config, array $events) {
                 'curl info' => $request->info
             ]);
             $localerrorid = 'IT-ERR-' . sha1($errcontext);
-            $errmessage = sprintf('[LOADER:MOODLE_CURL_LRS][ERROR] localErrorId: %s, Context: %s', $errcontext);
+            $errmessage = sprintf('[LOADER:MOODLE_CURL_LRS][ERROR] localErrorId: %s, Context: %s', $localerrorid, $errcontext);
             call_user_func($logerror, $errmessage);
 
             $erronousrequestinfo = json_encode([
