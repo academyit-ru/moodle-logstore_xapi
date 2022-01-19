@@ -87,6 +87,7 @@
         <FIELD NAME="isrunning" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="флаг обозначающий что задача в обработке"/>
         <FIELD NAME="isbanned" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="задача заблокирована"/>
         <FIELD NAME="payload" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="полезная нагрузка в json формате"/>
+        <FIELD NAME="lasterror" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="текст ошибки при последней обработке"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

@@ -27,10 +27,15 @@ namespace logstore_xapi\local;
 
 defined('MOODLE_INTERNAL') || die();
 
+use coding_exception;
+use logstore_xapi\event\queue_item_banned;
 use logstore_xapi\event\queue_item_completed;
+use logstore_xapi\event\queue_item_requeued;
 use moodle_database;
 
 class queue_service {
+
+    const DEFAULT_ATTEMPTS_LIMIT = 3;
 
     /**
      * @var moodle_database
@@ -115,7 +120,79 @@ class queue_service {
      *
      * @return void
      */
-    public function requeue(array $records) {
-        # code ...
+    public function requeue(array $queueitems) {
+        if ([] === $queueitems) {
+            return [];
+        }
+        $queueitems = array_map(
+            function(queue_item $qi) {
+                $qi->mark_as_complete()
+                   ->increase_attempt_number();
+            },
+            $queueitems
+        );
+
+        $attemptslimit = $this->get_attempts_limit();
+        $toberequeued = [];
+        $tobebanned = [];
+        /** @var queue_item $qitem */
+        foreach ($queueitems as $qitem) {
+            if (true === ($attemptslimit <= $qitem->get('attempts'))) {
+                $tobebanned[] = $qitem;
+            } else {
+                $qitem->mark_as_banned();
+                $toberequeued[] = $qitem;
+            }
+        }
+
+        $toupdate = array_merge($tobebanned, $toberequeued);
+        $this->update_records($toupdate);
+
+        array_walk($toberequeued, function (queue_item $qi) {
+            $event = queue_item_requeued::create_from_record($qi);
+            $event->trigger();
+        });
+
+        array_walk($tobebanned, function (queue_item $qi) {
+            $event = queue_item_banned::create_from_record($qi);
+            $event->trigger();
+        });
+    }
+
+    /**
+     *
+     * @return int
+     */
+    protected function get_attempts_limit() {
+        $limit = get_config('logstore_xapi', 'queueitemattemptslimit');
+        if (false === $limit) {
+            $limit = static::DEFAULT_ATTEMPTS_LIMIT;
+        }
+
+        return (int) $limit;
+    }
+
+    /**
+     * @param array $queueitems
+     *
+     * @return queue_item[]
+     */
+    protected function update_records(array $queueitems) {
+        array_walk($queueitems, function (queue_item $qi) {
+            if (false === $qi->is_valid()) {
+                throw new coding_exception(
+                    sprintf('%s: Заданы не валидные значения при повторном размещении задач в очередь', static::class),
+                    json_encode($qi->get_errors())
+                );
+            }
+        });
+
+        $this->db->update_record(
+            queue_item::TABLE,
+            array_map(fn(queue_item $qi) => $qi->to_record(), $queueitems),
+            true // $bulk
+        );
+
+        return $queueitems;
     }
 }

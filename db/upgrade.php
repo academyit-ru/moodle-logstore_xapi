@@ -99,6 +99,7 @@ function xmldb_logstore_xapi_upgrade($oldversion) {
         $table->add_field('isrunning', XMLDB_TYPE_INTEGER, '1', null, null, null, '0');
         $table->add_field('isbanned', XMLDB_TYPE_INTEGER, '1', null, null, null, '0');
         $table->add_field('payload', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('lasterror', XMLDB_TYPE_TEXT, null, null, null, null, null);
 
         // Adding keys to table logstore_xapi_queue.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
