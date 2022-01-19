@@ -98,6 +98,11 @@ class queue_item extends persistent {
                 'null' => NULL_ALLOWED,
                 'type' => PARAM_RAW,
             ],
+            'lasterror' => [
+                'default' => '',
+                'null' => NULL_ALLOWED,
+                'type' => PARAM_RAW,
+            ],
         ];
     }
 
@@ -148,6 +153,40 @@ class queue_item extends persistent {
                 json_encode($this->get_errors())
             );
         }
+
+        return $this;
+    }
+
+    /**
+     * @param int $increment
+     *
+     * @return self
+     */
+    public function increase_attempt_number($increment = 1) {
+        $current = (int) $this->raw_get('attempts');
+        $this->raw_set('attempts', $current + $increment);
+
+        return $this;
+    }
+
+    /**
+     *
+     * @return int
+     */
+    protected function get_attempts() {
+        return (int) $this->raw_get('attempts');
+    }
+
+    /**
+     *
+     * @return self
+     */
+    public function mark_as_banned() {
+        global $USER;
+
+        $this->raw_set('isbanned', true);
+        $this->raw_set('timemodified', true);
+        $this->raw_set('usermodified', $USER->id);
 
         return $this;
     }
