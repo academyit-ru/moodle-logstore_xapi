@@ -27,6 +27,8 @@ use core_plugin_manager;
 
 class emit_statements_batch_job extends base_batch_job {
 
+    const DEFAULT_MAX_BATCH_SIZE = 150;
+
     /**
      * @var array
      */
@@ -53,17 +55,17 @@ class emit_statements_batch_job extends base_batch_job {
     }
 
     /**
-     *
+     * @return array
      */
     public function result_success() {
-        return [];
+        return $this->resultsuccess;
     }
 
     /**
-     *
+     * @return array
      */
     public function result_error() {
-        return [];
+        return $this->resulterror;
     }
 
     /**
@@ -100,8 +102,9 @@ class emit_statements_batch_job extends base_batch_job {
             ],
             'loader' => [
                 'loader' => 'moodle_curl_lrs',
-                'lrs_endpoint' => $this->get_config('endpoint', ''), 'lrs_token' => $this->get_config('token', ''),
-                'lrs_max_batch_size' => $this->get_config('maxbatchsize', 150),
+                'lrs_endpoint' => $this->get_config('endpoint', ''),
+                'lrs_token' => $this->get_config('token', ''),
+                'lrs_max_batch_size' => $this->get_config('maxbatchsize', static::DEFAULT_MAX_BATCH_SIZE),
             ],
         ];
         $loadedevents = \src\handler($handlerconfig, $this->records);
