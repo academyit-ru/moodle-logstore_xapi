@@ -27,6 +27,7 @@ namespace logstore_xapi\local;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\event\queue_item_completed;
 use moodle_database;
 
 class queue_service {
@@ -98,13 +99,7 @@ class queue_service {
         if ([] === $queueitems) {
             return [];
         }
-        array_walk(
-            $queueitems,
-            fn(queue_item $r) => $r->set('isrunning', false)
-                                   ->set('timecompleted', time())
-                                   ->set('timemodified', time())
-                                   ->set('usermodified', $USER->id)
-        );
+        array_walk($queueitems, fn(queue_item $r) => $r->mark_as_complete());
 
         $this->db->update_record(
             queue_item::TABLE,
@@ -113,7 +108,7 @@ class queue_service {
         );
 
         array_walk($queueitems, function (queue_item $qi) {
-            $event = queue_item_completed::from_record($qi);
+            $event = queue_item_completed::create_from_record($qi);
             $event->trigger();
         });
     }

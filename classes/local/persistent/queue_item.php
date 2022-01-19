@@ -27,7 +27,9 @@ namespace logstore_xapi\local;
 
 defined('MOODLE_INTERNAL') || die();
 
+use coding_exception;
 use core\persistent;
+use DateTimeImmutable;
 use moodle_database;
 
 class queue_item extends persistent {
@@ -130,32 +132,23 @@ class queue_item extends persistent {
     }
 
     /**
-     * Пометит пачку записей как обработанные
-     *
-     * @param self[]
-     *
-     * @return self[]
+     * @return self
      */
-    public static function mark_as_complete(array $records) {
-        /** @var moodle_database $DB */
-        global $DB;
+    public function mark_as_complete() {
         global $USER;
 
-        if ([] === $records) {
-            return [];
-        }
-        array_walk(
-            $records,
-            fn(queue_item $r) => $r->set('isrunning', false)
-                                   ->set('timecompleted', time())
-                                   ->set('timemodified', time())
-                                   ->set('usermodified', $USER->id)
-        );
+        $this->raw_set('isrunning', false);
+        $this->raw_set('timecompleted', time());
+        $this->raw_set('timemodified', time());
+        $this->raw_set('usermodified', $USER->id);
 
-        $DB->update_record(
-            static::TABLE,
-            array_map(fn($r) => $r->to_record(), $records),
-            true // $bulk
-        );
+        if (!$this->is_valid()) {
+            throw new coding_exception(
+                sprintf('%s: Заданы не валидные значения после mark_complete()', static::class),
+                json_encode($this->get_errors())
+            );
+        }
+
+        return $this;
     }
 }
