@@ -56,3 +56,5 @@ $string['tasksync'] = 'Синхронизировать журналы собы�
 $string['taskemitfailed'] = 'Отправка следа из журнала logstore_xapi_failed_log';
 $string['emit_statement_task_name'] = 'Отправит xAPI выражение в LRS из очереди emit_statement';
 $string['publish_attachment_task_name'] = 'Отправит артефакт обучения в S3';
+$string['queue_item_requeued_event'] = 'Задача вернулась в очередь';
+$string['ban_reason_attemptslimit_reached'] = 'Достигнут лимит попыток';
