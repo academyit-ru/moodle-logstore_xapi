@@ -71,5 +71,29 @@
         <INDEX NAME="user-module" UNIQUE="false" FIELDS="userid, contextlevel, contextinstanceid, crud, edulevel, timecreated"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="logstore_xapi_queue" COMMENT="очередь задачь об обработке записей журнала">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="logrecordid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="id записи из logstore_xapi_log"/>
+        <FIELD NAME="itemkey" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="queue" TYPE="char" LENGTH="256" NOTNULL="true" SEQUENCE="false" COMMENT="очередь в которую помещён элемент"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timestarted" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecompleted" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="priority" TYPE="int" LENGTH="3" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="чем ниже значение тем выше приоритет"/>
+        <FIELD NAME="attempts" TYPE="int" LENGTH="4" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="число попыток обработать задачу"/>
+        <FIELD NAME="isrunning" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="флаг обозначающий что задача в обработке"/>
+        <FIELD NAME="isbanned" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="задача заблокирована"/>
+        <FIELD NAME="payload" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="полезная нагрузка в json формате"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="itemkey_uix" UNIQUE="true" FIELDS="itemkey"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>
