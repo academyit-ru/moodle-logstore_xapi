@@ -24,7 +24,6 @@
  */
 namespace logstore_xapi\event;
 
-use core_date;
 use logstore_xapi\local\queue_item;
 
 /**
@@ -115,6 +114,9 @@ class queue_item_completed extends \core\event\base {
      */
     protected function validate_data() {
         parent::validate_data();
+        if (false === isset($this->other['logrecordid'])) {
+            throw new \coding_exception('Не указано значение для logrecordid');
+        }
         if (false === isset($this->other['queue'])) {
             throw new \coding_exception('Не указано значение для queue');
         }
@@ -126,6 +128,7 @@ class queue_item_completed extends \core\event\base {
     public static function get_other_mapping() {
         $othermapped = [];
         $othermapped['objectid'] = ['db' => 'logstore_xapi_queue', 'restore' => 'logstore_xapi_queue'];
+        $othermapped['logrecordid'] = ['db' => 'logstore_xapi_log', 'restore' => 'logstore_xapi_log'];
 
         return $othermapped;
     }
