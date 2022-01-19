@@ -32,4 +32,28 @@ use core\persistent;
 class xapi_record extends persistent {
 
     const TABLE = 'logstore_xapi_records';
+
+    /**
+     * @inheritdoc
+     */
+    protected static function define_properties() {
+        return [
+            'lrs_uuid' => [
+                'null' => NULL_ALLOWED,
+                'type' => PARAM_ALPHANUMEXT,
+            ],
+            'eventid' => [
+                'null' => NULL_NOT_ALLOWED,
+                'type' => PARAM_INT,
+            ],
+            'body' => [
+                'null' => NULL_ALLOWED,
+                'type' => PARAM_RAW,
+            ],
+            'timeregistered' => [
+                'null' => NULL_ALLOWED,
+                'type' => PARAM_INT,
+            ],
+        ];
+    }
 }

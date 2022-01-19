@@ -95,5 +95,24 @@
         <INDEX NAME="itemkey_uix" UNIQUE="true" FIELDS="itemkey"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="logstore_xapi_records" COMMENT="xAPI полученное из moodle event'а">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="lrs_uuid" TYPE="char" LENGTH="36" NOTNULL="false" SEQUENCE="false" COMMENT="uuid присвоенный в LRS"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="id записи из logstore_xapi_log"/>
+        <FIELD NAME="body" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="содержимое xAPI выражения в json формате"/>
+        <FIELD NAME="timeregistered" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="метка времени, когда выражение было зарегистрировано в LRS"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="xapi_rec_f_log" TYPE="foreign" FIELDS="eventid" REFTABLE="logstore_xapi_log" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="xapi_rec_lrs_uuid_uix" UNIQUE="true" FIELDS="lrs_uuid"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>
