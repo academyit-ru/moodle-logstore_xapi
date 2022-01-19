@@ -93,9 +93,6 @@ class queue_service {
      * @return void
      */
     public function complete(array $queueitems) {
-        // queue_item::mark_as_complete($queueitems);
-        global $USER;
-
         if ([] === $queueitems) {
             return [];
         }
