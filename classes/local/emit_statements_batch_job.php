@@ -135,29 +135,34 @@ class emit_statements_batch_job extends base_batch_job {
         $failed = $this->filter_failed_statements($loadedevents);
         $registered = $this->filter_registered_staetments($loadedevents);
 
-        $errortuples = $this->filter_queueitems_by($failed);
+        $errortuples = $this->map_queueitems_with_loadedevent($failed);
         $this->resulterror[] = array_map(function($tuple) {
             /** @var queue_item $qitem */
             list($qitem, $loadedevent) = $tuple;
-            $qitem->set('lasterror', $loadedevent['error'] ?? '!!! EMPTY ERROR MESSAGE !!!');
+            $errormsg = $loadedevent['error'] ?? '!!! EMPTY ERROR MESSAGE !!!';
+            $qitem->set('lasterror', $errormsg);
 
             return $qitem;
         }, $errortuples);
 
-        $registeredtuples  = $this->filter_queueitems_by($registered);
+        $registeredtuples  = $this->map_queueitems_with_loadedevent($registered);
         $xapirecords = [];
         foreach ($registeredtuples as $tuple) {
             /** @var queue_item $qitem */
             list($qitem, $loadedevent) = $tuple;
+            $this->resultsuccess[] = $qitem;
             $xapirecords[] = new xapi_record(0, (object) [
                 'lrs_uuid'       => $loadedevent['uuid'],
                 'body'           => $loadedevent['statement'],
                 'eventid'        => $qitem->get('logrecordid'),
                 'timeregistered' => time()
             ]);
-            $this->resultsuccess[] = $qitem;
         }
-        $this->xapirecords = array_map(fn($xapirecord) => $xapirecord->save(), $xapirecords);
+
+        $this->xapirecords = array_map(
+            fn($xapirecord) => $xapirecord->save(),
+            $xapirecords
+        );
     }
 
     /**
@@ -239,7 +244,7 @@ class emit_statements_batch_job extends base_batch_job {
      *
      * @return <queue_item, $loadedevent>[]
      */
-    protected function filter_queueitems_by(array $loadedevents) {
+    protected function map_queueitems_with_loadedevent(array $loadedevents) {
         $queueitems = [];
         foreach ($this->queueitems as $qitem) {
             $queueitems[$qitem->get('logrecordid')] = $qitem;
