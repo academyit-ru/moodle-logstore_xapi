@@ -23,7 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace logstore_xapi\local;
+namespace logstore_xapi\local\persistent;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -175,6 +175,14 @@ class queue_item extends persistent {
      */
     protected function get_attempts() {
         return (int) $this->raw_get('attempts');
+    }
+
+    /**
+     *
+     * @return int
+     */
+    protected function get_logrecordid() {
+        return (int) $this->raw_get('logrecordid');
     }
 
     /**
