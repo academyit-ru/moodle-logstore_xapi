@@ -115,5 +115,24 @@
         <INDEX NAME="xapi_rec_lrs_uuid_uix" UNIQUE="true" FIELDS="lrs_uuid"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="logstore_xapi_attachments" COMMENT="Хранит информацию об артефактах обучения">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Внешний ключь для связи с logstore_xapi_log"/>
+        <FIELD NAME="s3_url" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Ссылка на артефакт в S3 хранилище"/>
+        <FIELD NAME="s3_filename" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="название архива загруженного в S3"/>
+        <FIELD NAME="s3_sha2" TYPE="char" LENGTH="256" NOTNULL="false" SEQUENCE="false" COMMENT="hash загруженного файла"/>
+        <FIELD NAME="s3_filesize" TYPE="int" LENGTH="20" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="размер файла загруженного в S3 в байтах"/>
+        <FIELD NAME="s3_contenttype" TYPE="char" LENGTH="256" NOTNULL="false" SEQUENCE="false" COMMENT="MIME тип файла загруженного в S3"/>
+        <FIELD NAME="s3_etag" TYPE="char" LENGTH="256" NOTNULL="false" SEQUENCE="false" COMMENT="etag файла из s3"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="xapi_attach_log_key" TYPE="foreign" FIELDS="eventid" REFTABLE="logstore_xapi_log" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
   </TABLES>
 </XMLDB>
