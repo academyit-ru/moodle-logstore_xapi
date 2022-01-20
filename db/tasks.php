@@ -27,15 +27,6 @@ $tasks = array(
         'month' => '*'
     ),
     array(
-        'classname' => '\logstore_xapi\task\emit_failed_task',
-        'blocking' => 0,
-        'minute' => '*/1',
-        'hour' => '*',
-        'day' => '*',
-        'dayofweek' => '*',
-        'month' => '*'
-    ),
-    array(
         'classname' => '\logstore_xapi\task\logsync_task',
         'blocking' => 0,
         'minute' => '0',
