@@ -58,3 +58,4 @@ $string['emit_statement_task_name'] = 'Отправит xAPI выражение 
 $string['publish_attachment_task_name'] = 'Отправит артефакт обучения в S3';
 $string['queue_item_requeued_event'] = 'Задача вернулась в очередь';
 $string['ban_reason_attemptslimit_reached'] = 'Достигнут лимит попыток';
+$string['xapi_record_registered_event'] = 'xAPI выражение было зарегистрировано в LRS';
