@@ -23,11 +23,14 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace logstore_xapi\local;
+namespace logstore_xapi\local\persistent;
 
 defined('MOODLE_INTERNAL') || die();
 
+use core\invalid_persistent_exception;
 use core\persistent;
+use logstore_xapi\event\xapi_record_regisrered;
+use moodle_database;
 
 class xapi_record extends persistent {
 
@@ -55,5 +58,13 @@ class xapi_record extends persistent {
                 'type' => PARAM_INT,
             ],
         ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function after_create() {
+        $event = xapi_record_regisrered::create_from_record($this);
+        $event->trigger();
     }
 }

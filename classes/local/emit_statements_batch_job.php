@@ -24,34 +24,55 @@
 namespace logstore_xapi\local;
 
 use core_plugin_manager;
+use logstore_xapi\local\persistent\queue_item;
+use logstore_xapi\local\persistent\xapi_record;
+use moodle_database;
 
 class emit_statements_batch_job extends base_batch_job {
 
     const DEFAULT_MAX_BATCH_SIZE = 150;
 
     /**
-     * @var array
+     * @var queue_item[]
      */
-    protected $records;
+    protected $queueitems;
 
     /**
-     * @var array
+     * @var \stdClass[]
+     */
+    protected $events;
+
+    /**
+     * @var queue_item[]
      */
     protected $resulterror;
 
     /**
-     * @var array
+     * @var queue_item[]
      */
     protected $resultsuccess;
+
+    /**
+     * @var xapi_records[]
+     */
+    protected $xapirecords;
+
+    /**
+     * @var moodle_database
+     */
+    protected $db;
 
     /**
      *
      *
      */
-    public function __consturct(array $records) {
-        $this->records = $records;
+    public function __consturct(array $queueitems, moodle_database $db) {
+        $this->queueitems = $queueitems;
+        $this->events = [];
         $this->resulterror = [];
         $this->resultsuccess = [];
+        $this->xapirecords = [];
+        $this->db = $db;
     }
 
     /**
@@ -107,10 +128,34 @@ class emit_statements_batch_job extends base_batch_job {
                 'lrs_max_batch_size' => $this->get_config('maxbatchsize', static::DEFAULT_MAX_BATCH_SIZE),
             ],
         ];
-        $loadedevents = \src\handler($handlerconfig, $this->records);
+        $loadedevents = \src\handler($handlerconfig, $this->get_events());
 
-        $this->resulterror = $this->filter_failed_statements($loadedevents);
-        $this->resultsuccess  = $this->filter_registered_staetments($loadedevents);
+        $failed = $this->filter_failed_statements($loadedevents);
+        $registered = $this->filter_registered_staetments($loadedevents);
+
+        $errortuples = $this->filter_queueitems_by($failed);
+        $this->resulterror[] = array_map(function($tuple) {
+            /** @var queue_item $qitem */
+            list($qitem, $loadedevent) = $tuple;
+            $qitem->set('lasterror', $loadedevent['error'] ?? '!!! EMPTY ERROR MESSAGE !!!');
+
+            return $qitem;
+        }, $errortuples);
+
+        $registeredtuples  = $this->filter_queueitems_by($registered);
+        $xapirecords = [];
+        foreach ($registeredtuples as $tuple) {
+            /** @var queue_item $qitem */
+            list($qitem, $loadedevent) = $tuple;
+            $xapirecords[] = new xapi_record(0, (object) [
+                'lrs_uuid'       => $loadedevent['uuid'],
+                'body'           => $loadedevent['statement'],
+                'eventid'        => $qitem->get('logrecordid'),
+                'timeregistered' => time()
+            ]);
+            $this->resultsuccess[] = $qitem;
+        }
+        $this->xapirecords = array_map(fn($xapirecord) => $xapirecord->save(), $xapirecords);
     }
 
     /**
@@ -161,5 +206,60 @@ class emit_statements_batch_job extends base_batch_job {
         $filtered = array_filter($loadedevent, fn($event) => $event['loaded'] === true);
 
         return array_map(fn($ev) => $ev['event'], $filtered);
+    }
+
+    /**
+     * Вернёт события журнала которые были переданы на обработку
+     *
+     */
+    protected function get_events() {
+        if ([] === $this->queueitems) {
+            return [];
+        }
+
+        if ([] === $this->events) {
+            $ids = array_map(
+                fn (queue_item $qi) => $qi->get('logrecordid'),
+                $this->queueitems
+            );
+            list($insql, $params) = $this->db->get_in_or_equal($ids, SQL_PARAMS_NAMED, 'id');
+
+            $this->events = $this->db->get_record_select('logstore_xapi_log', 'id ' . $insql, $params);
+        }
+
+        return $this->events;
+    }
+
+    /**
+     * Отфильтрует список задач по $loadedevents
+     *
+     * @param array $loadedevents
+     *
+     * @return <queue_item, $loadedevent>[]
+     */
+    protected function filter_queueitems_by(array $loadedevents) {
+        $queueitems = [];
+        foreach ($this->queueitems as $qitem) {
+            $queueitems[$qitem->get('logrecordid')] = $qitem;
+        }
+        return array_filter(
+            array_map(function ($loadedevent) use ($queueitems) {
+                $logrecord = $loadedevent['event'];
+                if (array_key_exists($logrecord->id, $queueitems)) {
+                    return false;
+                }
+                return [$queueitems[$logrecord->id], $loadedevent];
+            }, $loadedevents)
+        );
+    }
+
+    /**
+     * Если xAPI выражения были успешно зарегистрированы в LRS то будут
+     * созданы записи в таблице logstore_xapi_records
+     *
+     * @return xapi_records[]
+     */
+    public function get_xapi_records() {
+        return $this->xapirecords;
     }
 }

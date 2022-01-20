@@ -24,14 +24,13 @@ function load_batch(array $config, array $transformedevents, callable $loader) {
             $eventstatements = $transformedevent['statements'];
             return array_merge($result, $eventstatements);
         }, []);
-        $loader($config, $statements);
-        $loadedevents = construct_loaded_events($transformedevents, true);
+        $responsetext = $loader($config, $statements);
+        $loadedevents = construct_loaded_events($transformedevents, true, ['result' => $responsetext]);
         return $loadedevents;
     } catch (\Exception $e) {
         $logerror = $config['log_error'];
-        $logerror("Failed load for event id #" . $eventobj->id . ": " .  $e->getMessage());
         $logerror($e->getTraceAsString());
-        $loadedevents = construct_loaded_events($transformedevents, false);
+        $loadedevents = construct_loaded_events($transformedevents, false, ['error' => $e->getMessage()]);
         return $loadedevents;
     }
 }

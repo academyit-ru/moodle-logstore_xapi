@@ -18,14 +18,60 @@ namespace src\loader\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
-function construct_loaded_events(array $transformedevents, $loaded) {
-    $loadedevents = array_map(function ($transformedevent) use ($loaded) {
+/**
+ * @param array $transformedevents
+ * @param bool  $loaded
+ * @param array ['result' => null|string, 'error' => null|string] по умолчанию []
+ *
+ * @return array [
+ *      'event' => \stdClass,
+ *      'statement' => string,
+ *      'transformed' => bool,
+ *      'loaded' => bool,
+ *      'uuid' => string|null,
+ *      'error' => string|null
+ * ]
+ */
+function construct_loaded_events(array $transformedevents, $loaded, $response = []) {
+    $loadedevents = array_map(function ($transformedevent, $offset) use ($loaded, $response) {
+        $uuid = null;
+        $error = null;
+        if (true === $loaded) {
+            $uuid = _extract_uuid($response['result'], $offset);
+        } else {
+            $error = _extract_error($response['error'], $offset);
+        }
         return [
             'event' => $transformedevent['event'],
             'statements' => $transformedevent['statements'],
             'transformed' => $transformedevent['transformed'],
             'loaded' => $loaded,
+            'uuid' => $uuid,
+            'error' => $error,
         ];
-    }, $transformedevents);
+    }, $transformedevents, array_keys($transformedevents));
     return $loadedevents;
+}
+
+function _extract_uuid($response, $statementoffset) {
+    if (false === is_array($response)) {
+        $response = json_decode($response);
+    }
+    $uuid = $response[$statementoffset] ?? null;
+
+    return $uuid;
+}
+
+function _extract_error($response, $statementoffset) {
+    if (false === is_array($response)) {
+        $response = json_decode($response);
+    }
+    $errormsg = null;
+    $errorid = $response['errorId'] ?? null;
+    $warning = $response['warnings'][$statementoffset] ?? 'No warnings for this xAPI statement';
+    if ($errorid) {
+        $errormsg = json_encode(compact('errorid', 'warning'));
+    }
+
+    return $errormsg;
 }

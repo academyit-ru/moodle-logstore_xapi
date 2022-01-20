@@ -43,15 +43,16 @@ function load(array $config, array $events) {
             ],
         ]);
 
-        echo '<pre>';
-        print_r($responsetext);
-        echo '</pre>';
+        // echo '<pre>';
+        // print_r($responsetext);
+        // echo '</pre>';
 
         $responsecode = $request->info['http_code'];
 
         if ($responsecode !== 200) {
             throw new \Exception($responsetext);
         }
+        return $responsetext;
     };
     return utils\load_in_batches($config, $events, $sendhttpstatements);
 }
