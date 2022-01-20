@@ -23,6 +23,8 @@
  */
 namespace logstore_xapi\local;
 
+require_once dirname(__DIR__, 2) . '/src/autoload.php';
+
 use core_plugin_manager;
 use logstore_xapi\local\persistent\queue_item;
 use logstore_xapi\local\persistent\xapi_record;
