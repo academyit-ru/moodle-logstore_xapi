@@ -31,11 +31,15 @@ use coding_exception;
 use logstore_xapi\event\queue_item_banned;
 use logstore_xapi\event\queue_item_completed;
 use logstore_xapi\event\queue_item_requeued;
+use logstore_xapi\local\persistent\queue_item;
 use moodle_database;
+use Throwable;
 
 class queue_service {
 
     const DEFAULT_ATTEMPTS_LIMIT = 3;
+    const QUEUE_EMIT_STATEMENTS = 'EMIT_STATEMENTS';
+    const QUEUE_PUBLISH_ATTACHMENTS = 'PUBLISH_ATTACHMENTS';
 
     /**
      * @var moodle_database
@@ -85,11 +89,33 @@ class queue_service {
     }
 
     /**
-     *
-     *
+     * @param int[]  $eventids
+     * @param string $queuename
      */
-    public function push() {
-        # code ...
+    public function push($events, $queuename, $payload = []) {
+        $this->validate_queuename($queuename);
+        if (false === is_array($events)) {
+            $events = [$events];
+        }
+        $qitems = array_map(function ($event) use ($queuename, $payload) {
+            return new queue_item(0, (object) [
+                'logrecordid' => $event->id,
+                'itemkey' => $this->make_item_key($event, $queuename),
+                'queue' => $queuename,
+                'payload' => json_encode($payload),
+            ]);
+        }, $events);
+
+        /** @var queue_item $qitem */
+        foreach ($qitems as $qitem) {
+            try {
+                $qitem->save();
+            } catch (Throwable $e) {
+                error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()));
+            }
+        }
+
+        return $qitems;
     }
 
     /**
@@ -126,8 +152,10 @@ class queue_service {
         }
         $queueitems = array_map(
             function(queue_item $qi) {
-                $qi->mark_as_complete()
-                   ->increase_attempt_number();
+                if (false === $qi->is_banned()) {
+                    $qi->mark_as_complete()
+                       ->increase_attempt_number();
+                }
             },
             $queueitems
         );
@@ -137,12 +165,13 @@ class queue_service {
         $tobebanned = [];
         /** @var queue_item $qitem */
         foreach ($queueitems as $qitem) {
-            if (true === ($attemptslimit <= $qitem->get('attempts'))) {
-                $tobebanned[] = $qitem;
-            } else {
-                $qitem->mark_as_banned();
+            if (false === $qitem->get('isbanned') && $attemptslimit > $qitem->get('attempts')) {
                 $toberequeued[] = $qitem;
+                continue;
             }
+            // либо задача была заблокирована либо достигнут лимит попыток
+            $qitem->mark_as_banned();
+            $tobebanned[] = $qitem;
         }
 
         $toupdate = array_merge($tobebanned, $toberequeued);
@@ -194,5 +223,35 @@ class queue_service {
         );
 
         return $queueitems;
+    }
+
+    /**
+     * @param string $queuename
+     * @throws coding_exception
+     */
+    protected function validate_queuename($queuename) {
+        $allowedqueuenames = [
+            static::QUEUE_EMIT_STATEMENTS,
+            static::QUEUE_PUBLISH_ATTACHMENTS
+        ];
+        if (false === in_array($queuename, $allowedqueuenames)) {
+            throw new coding_exception('Данная очердь не обрабатывается ' . $queuename);
+        }
+        return true;
+    }
+
+    /**
+     * @param \stdClass $event
+     *
+     * @return string
+     */
+    protected function make_item_key($event, $queuename) {
+        return sprintf(
+            '%s:%s:%s:%d',
+            $queuename,
+            $event->component,
+            str_replace('\'', '_', $event->eventname),
+            $event->id
+        );
     }
 }

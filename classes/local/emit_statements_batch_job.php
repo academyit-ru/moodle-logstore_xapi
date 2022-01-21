@@ -127,7 +127,7 @@ class emit_statements_batch_job extends base_batch_job {
                 'loader' => 'moodle_curl_lrs',
                 'lrs_endpoint' => $this->get_config('endpoint', ''),
                 'lrs_token' => $this->get_config('token', ''),
-                'lrs_max_batch_size' => $this->get_config('maxbatchsize', static::DEFAULT_MAX_BATCH_SIZE),
+                'lrs_max_batch_size' => count($this->queueitems),
             ],
         ];
         $loadedevents = \src\handler($handlerconfig, $this->get_events());
@@ -213,28 +213,6 @@ class emit_statements_batch_job extends base_batch_job {
         $filtered = array_filter($loadedevent, fn($event) => $event['loaded'] === true);
 
         return array_map(fn($ev) => $ev['event'], $filtered);
-    }
-
-    /**
-     * Вернёт события журнала которые были переданы на обработку
-     *
-     */
-    protected function get_events() {
-        if ([] === $this->queueitems) {
-            return [];
-        }
-
-        if ([] === $this->events) {
-            $ids = array_map(
-                fn (queue_item $qi) => $qi->get('logrecordid'),
-                $this->queueitems
-            );
-            list($insql, $params) = $this->db->get_in_or_equal($ids, SQL_PARAMS_NAMED, 'id');
-
-            $this->events = $this->db->get_record_select('logstore_xapi_log', 'id ' . $insql, $params);
-        }
-
-        return $this->events;
     }
 
     /**

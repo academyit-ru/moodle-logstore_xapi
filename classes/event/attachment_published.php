@@ -24,6 +24,9 @@
  */
 namespace logstore_xapi\event;
 
+use logstore_xapi\local\persistent\queue_item;
+use logstore_xapi\local\persistent\xapi_attachment;
+
 /**
  * Event класс события attachment_published.
  *
@@ -40,12 +43,35 @@ namespace logstore_xapi\event;
 class attachment_published extends \core\event\base {
 
     /**
+     * @param queue_item $qitem
+     */
+    public static function create_from_record(xapi_attachment $record, queue_item $qitem, $logrecord) {
+        $event = self::create([
+            'context' => \context_system::instance(),
+            'objectid' => $record->id,
+            'objecttable' => xapi_attachment::TABLE,
+            'other' => [
+                'logrecordid' => $record->get('eventid'),
+                's3_url' => $record->get('s3_url'),
+                'qitemid' => $qitem->get('id'),
+                'queue' => $qitem->get('queue'),
+            ]
+        ]);
+
+        $event->add_record_snapshot(xapi_attachment::TABLE, $record);
+        $event->add_record_snapshot('logstore_xapi_log', $logrecord);
+        $event->add_record_snapshot(queue_item::TABLE, $qitem);
+
+        return $event;
+    }
+
+    /**
      * Init method.
      *
      * @return void
      */
     protected function init() {
-        $this->data['crud'] = 'r';
+        $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
     }
 
@@ -64,7 +90,11 @@ class attachment_published extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        return "";
+        return sprintf(
+            'Артефакт обучения id:%d связанный с событием журнала id:%d был отправлен в S3',
+            $this->objectid,
+            $this->other['logrecordid']
+        );
     }
 
     /**
@@ -73,7 +103,13 @@ class attachment_published extends \core\event\base {
      * @return \moodle_url
      */
     public function get_url() {
-        return new \moodle_url('', []);
+        return new \moodle_url(
+            '/admin/tool/log/store/xapi/queues/view.php',
+            [
+                'id' => $this->other['qitemid'],
+                'queue' => $this->other['queue'],
+            ]
+        );
     }
 
     /**
@@ -84,15 +120,17 @@ class attachment_published extends \core\event\base {
      */
     protected function validate_data() {
         parent::validate_data();
-        if (empty($this->other[''])) {
-            throw new \coding_exception('');
+        if (empty($this->other['logrecordid'])) {
+            throw new \coding_exception('Не указано значение для logrecordid');
         }
-    }
-
-    public static function get_other_mapping() {
-        $othermapped = [];
-        $othermapped['cmid'] = array('db' => 'course_modules', 'restore' => 'course_module');
-
-        return $othermapped;
+        if (empty($this->other['s3_url'])) {
+            throw new \coding_exception('Не указано значение для s3_url');
+        }
+        if (empty($this->other['qitemid'])) {
+            throw new \coding_exception('Не указано значение для qitemid');
+        }
+        if (empty($this->other['queue'])) {
+            throw new \coding_exception('Не указано значение для queue');
+        }
     }
 }

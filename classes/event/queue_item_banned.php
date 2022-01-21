@@ -24,7 +24,7 @@
  */
 namespace logstore_xapi\event;
 
-use logstore_xapi\local\queue_item;
+use logstore_xapi\local\persistent\queue_item;
 
 /**
  * Event класс события queue_item_completed.

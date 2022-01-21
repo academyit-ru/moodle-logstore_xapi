@@ -24,7 +24,14 @@
  */
 namespace logstore_xapi\local;
 
+use logstore_xapi\local\persistent\queue_item;
+
 abstract class base_batch_job {
+
+    /**
+     * @var log_event[]
+     */
+    protected $events;
 
     /**
      *
@@ -42,4 +49,29 @@ abstract class base_batch_job {
      * @return void
      */
     abstract public function run();
+
+    /**
+     * Вернёт события журнала которые были переданы на обработку
+     * @return log_event[]
+     */
+    protected function get_events() {
+        if ([] === $this->queueitems) {
+            return [];
+        }
+
+        if ([] === $this->events) {
+            $ids = array_map(
+                fn (queue_item $qi) => $qi->get('logrecordid'),
+                $this->queueitems
+            );
+            list($insql, $params) = $this->db->get_in_or_equal($ids, SQL_PARAMS_NAMED, 'id');
+
+            $records = $this->db->get_record_select('logstore_xapi_log', 'id ' . $insql, $params);
+            $this->events = array_map(fn($record) => new log_event($record), $records);
+        }
+
+        return $this->events;
+    }
+
+
 }

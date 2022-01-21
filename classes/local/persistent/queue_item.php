@@ -58,11 +58,6 @@ class queue_item extends persistent {
                 'null' => NULL_NOT_ALLOWED,
                 'type' => PARAM_INT,
             ],
-            'timechanged' => [
-                'default' => 0,
-                'null' => NULL_NOT_ALLOWED,
-                'type' => PARAM_INT,
-            ],
             'timestarted' => [
                 'default' => 0,
                 'null' => NULL_NOT_ALLOWED,
@@ -192,10 +187,22 @@ class queue_item extends persistent {
     public function mark_as_banned() {
         global $USER;
 
+        if (true === (bool) $this->raw_get('isbanned')) {
+            return $this;
+        }
+
         $this->raw_set('isbanned', true);
         $this->raw_set('timemodified', true);
         $this->raw_set('usermodified', $USER->id);
 
         return $this;
+    }
+
+    /**
+     *
+     * @return bool
+     */
+    public function is_banned() {
+        return (bool) $this->raw_get('isbanned');
     }
 }

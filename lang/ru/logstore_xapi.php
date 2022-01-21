@@ -59,3 +59,5 @@ $string['publish_attachment_task_name'] = 'Отправит артефакт о�
 $string['queue_item_requeued_event'] = 'Задача вернулась в очередь';
 $string['ban_reason_attemptslimit_reached'] = 'Достигнут лимит попыток';
 $string['xapi_record_registered_event'] = 'xAPI выражение было зарегистрировано в LRS';
+$string['enqueue_jobs_task_name'] = 'Помещает "Работу" в очередь обработки';
+$string['attachment_published_event'] = 'Артефакт обучения был отправлен в S3';

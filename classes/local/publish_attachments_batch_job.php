@@ -24,6 +24,7 @@
  */
 namespace logstore_xapi\local;
 
+use coding_exception;
 use logstore_xapi\event\attachment_published;
 use logstore_xapi\local\persistent\queue_item;
 use logstore_xapi\local\persistent\xapi_attachment;
@@ -31,6 +32,7 @@ use moodle_database;
 use moodle_exception;
 use S3Exception;
 use stored_file;
+use Throwable;
 use zip_packer;
 
 class publish_attachments_batch_job extends base_batch_job {
@@ -100,71 +102,79 @@ class publish_attachments_batch_job extends base_batch_job {
         $qitemsbylogid = array_combine(
             array_column($this->queueitems, 'logrecordid'), $this->queueitems
         );
+
+        /** @var log_event $logevent */
         foreach ($this->get_events() as $logevent) {
-            $files = $this->get_event_files($logevent); // TODO: побровать вытащить файлы вне цикла
-            if ([] === $files) {
-                $qitem = $qitemsbylogid[$logevent->id];
-                $errormsg = sprintf(
-                    '%s: Не найдены файлы для события журнала id:%d name:%s',
-                    static::class, $logevent->id, $logevent->eventname
-                );
-                $qitem->set('lasterror', $errormsg);
-                $this->resulterror[] = $qitem;
-                continue;
-            }
 
-            $ziparchivepath = $this->pack_to_zip($files);
-            if (false === $ziparchivepath) {
-                $errormsg = sprintf(
-                    '%s: Не удалось создать zip-архив для файлов события журнала id:%d name:%s',
-                    static::class, $logevent->id, $logevent->eventname
-                );
-                $qitem->set('lasterror', $errormsg);
-                $this->resulterror[] = $qitem;
-                continue;
-            }
-            $attachmentname = $this->get_attachment_filename($logevent);
-
-            $handle = fopen($ziparchivepath, 'r');
+            $qitem = $qitemsbylogid[$logevent->id];
             try {
-                $uploadresult = $s3client->upload($attachmentname, $handle);
-            } catch (S3Exception $e) {
+                /// 1. Подготовка архива с артефактами к отправке в S3 ///
+                $attachmentname = $this->get_attachment_filename($logevent);
+                $files = $logevent->collect_attachments();
+                if ([] === $files) {
+                    $errormsg = sprintf(
+                        '%s: Не найдены файлы для события журнала id:%d name:%s',
+                        static::class, $logevent->id, $logevent->eventname
+                    );
+                    throw new coding_exception($errormsg);
+                }
+                $ziparchivepath = $this->pack_to_zip($files);
+                if (false === $ziparchivepath) {
+                    $errormsg = sprintf(
+                        '%s: Не удалось создать zip-архив для файлов события журнала id:%d name:%s',
+                        static::class, $logevent->id, $logevent->eventname
+                    );
+                    throw new coding_exception($errormsg);
+                }
+                $handle = fopen($ziparchivepath, 'r');
+
+                /// 2. Загрузка созданного архива в S3 ///
+                try {
+                    $uploadresult = $s3client->upload($attachmentname, $handle);
+                } catch (S3Exception $e) {
+                    fclose($handle);
+                    $errormsg = sprintf(
+                        '%s: При отправке файлов в S3 для события журнала id:%d name:%s возникла ошибка: %s',
+                        static::class, $logevent->id, $logevent->eventname, $e->getMessage()
+                    );
+                    throw new coding_exception($errormsg);
+                }
                 fclose($handle);
-                $errormsg = sprintf(
-                    '%s: При отправке файлов в S3 для события журнала id:%d name:%s возникла ошибка: %s',
-                    static::class, $logevent->id, $logevent->eventname, $e->getMessage()
-                );
-                $qitem->set('lasterror', $errormsg);
-                $this->resulterror[] = $qitem;
-                continue;
-            }
-            fclose($handle);
 
-            $xapiattachment = new xapi_attachment(0, (object) [
-                'eventid' => $logevent->id,
-                's3_url' => $uploadresult['url'],
-                's3_filename' => $attachmentname,
-                's3_sha2' => hash_file('sha256', $ziparchivepath),
-                's3_filesize' => filesize($ziparchivepath),
-                's3_contenttype' => mime_content_type($ziparchivepath),
-                's3_etag' => $uploadresult['etag'],
-            ]);
-            try {
-                $xapiattachment->save();
-            } catch (moodle_exception $e) {
-                $errormsg = sprintf(
-                    '%s: Не удалось сохранить запись для загруженного файла для события журнала id:%d name:%s возникла ошибка: %s',
-                    static::class, $logevent->id, $logevent->eventname, $e->getMessage()
-                );
-                $qitem->set('lasterror', $errormsg);
-                $qitem->mark_as_banned(); // Файл уже отправлен поэтому нужно убрать задачу из очереди
+                /// 3. Сохраняем информацию о загруженном артефакте для отправки в LRS ///
+                $xapiattachment = new xapi_attachment(0, (object) [
+                    'eventid' => $logevent->id,
+                    's3_url' => $uploadresult['url'],
+                    's3_filename' => $attachmentname,
+                    's3_sha2' => hash_file('sha256', $ziparchivepath),
+                    's3_filesize' => filesize($ziparchivepath),
+                    's3_contenttype' => mime_content_type($ziparchivepath),
+                    's3_etag' => $uploadresult['etag'],
+                ]);
+                try {
+                    $xapiattachment->save();
+                } catch (moodle_exception $e) {
+                    $qitem->mark_as_banned(); // Файл уже отправлен поэтому нужно убрать задачу из очереди
+                    $errormsg = sprintf(
+                        '%s: Не удалось сохранить запись для загруженного файла для события журнала id:%d name:%s возникла ошибка: %s',
+                        static::class, $logevent->id, $logevent->eventname, $e->getMessage()
+                    );
+                    throw new coding_exception($errormsg);
+                }
+
+            } catch (Throwable $e) {
+                // Сохраняем ошибку возникшую на одном из этапов и переходим к следующему событию в очереди
+                $qitem->set('lasterror', $e->getMessage());
                 $this->resulterror[] = $qitem;
                 continue;
             }
+
             $this->resultsuccess[] = $qitem;
             $this->xapiattachmentsrecords[] = $xapiattachment;
 
             try {
+                // Регистрируем событие attachment_published которое будет перехвачено в observer'е и для события журнала
+                // будет добавлена задача для отправки её xAPI выражения в LRS
                 $event = attachment_published::create_from_record($xapiattachment, $qitem, $logevent);
                 $event->trigger();
             } catch (moodle_exception $e) {
@@ -176,14 +186,6 @@ class publish_attachments_batch_job extends base_batch_job {
                 continue;
             }
         }
-        // Создать s3 клиента
-        // Запустить цикл в котором
-        //     собрать файлы связанные с событием
-        //     запаковать всё в zip архив и сохранить во временном хранилище
-        //     назвать архив <course_shortname>_<cmid>_<untiid>.zip
-        //     отправить архив в S3
-        //     При успешной отправке файла сохранить в logstore_xapi_attachments запись о файле
-        //     Запустить событие attachment_published
     }
 
     /**
@@ -201,9 +203,7 @@ class publish_attachments_batch_job extends base_batch_job {
      */
     protected function get_event_files($logevent) {
         $filefinder = new file_finder($logevent);
-        $files = $filefinder->get_files();
-
-        return $files;
+        return $filefinder->get_files();
     }
 
     /**

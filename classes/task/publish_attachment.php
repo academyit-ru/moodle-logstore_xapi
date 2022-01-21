@@ -46,9 +46,8 @@ class publish_attachment extends \core\task\scheduled_task {
         if (false === $batchsize) {
             $batchsize = static::DEFAULT_BATCH_SIZE;
         }
-        $queuename = 'PUBLISH_ATTACHMENTS';
         $queueservice = queue_service::instance();
-        $records = $queueservice->pop($batchsize, $queuename);
+        $records = $queueservice->pop($batchsize, queue_service::QUEUE_PUBLISH_ATTACHMENTS);
         $batchjob = new publish_attachments_batch_job($records);
         $batchjob->run();
         $queueservice->complete($batchjob->result_success());

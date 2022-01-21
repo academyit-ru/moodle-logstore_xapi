@@ -25,13 +25,11 @@
 namespace logstore_xapi\task;
 
 use logstore_xapi\local\emit_statements_batch_job;
-use logstore_xapi\local\queue_item;
 use logstore_xapi\local\queue_service;
 
 class emit_statement extends \core\task\scheduled_task {
 
     const DEFAULT_BATCH_SIZE = 150;
-    const QUEUE_NAME = 'EMIT_STATEMENTS';
 
     /**
      * @inheritdoc
@@ -50,7 +48,7 @@ class emit_statement extends \core\task\scheduled_task {
         }
         $queueservice = queue_service::instance();
 
-        $records = $queueservice->pop($batchsize, static::QUEUE_NAME);
+        $records = $queueservice->pop($batchsize, queue_service::QUEUE_EMIT_STATEMENTS);
         $batchjob = new emit_statements_batch_job($records);
         $batchjob->run();
 

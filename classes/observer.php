@@ -24,6 +24,8 @@
 namespace logstore_xapi\event;
 
 use logstore_xapi\event\attachment_published;
+use logstore_xapi\local\persistent\queue_item;
+use logstore_xapi\local\queue_service;
 
 /**
  * Observer класс
@@ -39,7 +41,9 @@ class observer {
      * @return void
      */
     public static function attachment_published(attachment_published $event) {
-        # code ...
+        $queueservice = queue_service::instance();
+        $xapievent = $event->get_record_snapshot('logstore_xapi_log', $event->other['logrecordid']);
+        $queueservice->push($xapievent, queue_service::QUEUE_EMIT_STATEMENTS);
     }
 
 }

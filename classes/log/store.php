@@ -25,13 +25,13 @@ use \tool_log\helper\store as helper_store;
 use \tool_log\helper\reader as helper_reader;
 use \tool_log\helper\buffered_writer as helper_writer;
 use \core\event\base as event_base;
-use \stdClass as php_obj;
+use moodle_database;
 
 /**
  * This class processes events and enables them to be sent to a logstore.
  *
  */
-class store extends php_obj implements log_writer {
+class store implements log_writer {
     use helper_store;
     use helper_reader;
     use helper_writer;
@@ -82,14 +82,10 @@ class store extends php_obj implements log_writer {
      * @param array $events raw event data
      */
     protected function insert_event_entries(array $events) {
+        /** @var moodle_database $DB */
         global $DB;
 
-        // If in background mode, just save them in the database.
-        if ($this->get_config('backgroundmode', false)) {
-            $DB->insert_records('logstore_xapi_log', $events);
-        } else {
-            $this->process_events($events);
-        }
+        $DB->insert_records('logstore_xapi_log', $events);
     }
 
     public function get_max_batch_size() {

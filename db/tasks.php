@@ -16,23 +16,32 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
-    array(
-        'classname' => '\logstore_xapi\task\emit_task',
+$tasks = [
+    [
+        'classname' => '\logstore_xapi\task\enqueue_jobs',
         'blocking' => 0,
         'minute' => '*/1',
         'hour' => '*',
         'day' => '*',
         'dayofweek' => '*',
         'month' => '*'
-    ),
-    array(
-        'classname' => '\logstore_xapi\task\logsync_task',
+    ],
+    [
+        'classname' => '\logstore_xapi\task\emit_statement',
         'blocking' => 0,
-        'minute' => '0',
-        'hour' => '0',
-        'day' => '0',
-        'dayofweek' => '0',
-        'month' => '0'
-    )
-);
+        'minute' => '*/5',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    ],
+    [
+        'classname' => '\logstore_xapi\task\publish_attachment',
+        'blocking' => 0,
+        'minute' => '*/5',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    ],
+];

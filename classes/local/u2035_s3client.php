@@ -102,7 +102,7 @@ class u2035_s3client {
         $bucketname = $bucketname ?? $this->defaultbucketname;
         $response = $this->client->upload($bucketname, $key, $body, $acl);
         $result = (object) [
-            'etag' => $response->get('ETag'),
+            'etag' => $response['ETag'],
             'url' => $response['ObjectURL'],
             'lastmodified' => new DateTimeImmutable($response['LastModified']),
         ];
