@@ -25,6 +25,7 @@
 namespace logstore_xapi\local;
 
 use coding_exception;
+use file_system_filedir;
 
 abstract class file_finder {
 
@@ -35,9 +36,12 @@ abstract class file_finder {
      * @return file_finder
      */
     public static function factory(log_event $logevent) {
+        global $DB;
+        $fs = get_file_storage();
+
         switch ($logevent->component) {
             case 'mod_assign':
-                return new file_finder_mod_assign();
+                return new file_finder_mod_assign($DB, $fs);
                 break;
             default:
                 throw new coding_exception('Неизвестное событие ' . $logevent->component);

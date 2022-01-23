@@ -110,7 +110,8 @@ class publish_attachments_batch_job extends base_batch_job {
             try {
                 /// 1. Подготовка архива с артефактами к отправке в S3 ///
                 $attachmentname = $this->get_attachment_filename($logevent);
-                $files = $logevent->collect_attachments();
+                $finder = file_finder::factory($logevent);
+                $files = $finder->find_for($logevent);
                 if ([] === $files) {
                     $errormsg = sprintf(
                         '%s: Не найдены файлы для события журнала id:%d name:%s',

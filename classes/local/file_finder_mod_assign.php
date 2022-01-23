@@ -24,10 +24,9 @@
  */
 namespace logstore_xapi\local;
 
-use assign;
-use assign_submission_file;
-use context_module;
+use file_storage;
 use logstore_xapi\local\file_finder;
+use moodle_database;
 
 require_once dirname(__DIR__, 7) . '/mod/assign/locallib.php';
 require_once dirname(__DIR__, 7) . '/mod/assign/submission/file/locallib.php';
@@ -35,32 +34,41 @@ require_once dirname(__DIR__, 7) . '/mod/assign/submission/file/locallib.php';
 class file_finder_mod_assign extends file_finder {
 
     /**
-     * TODO: write docbloc
-     *
-     *
+     * @var moodle_database
      */
-    public function __construct() {
-        # code ...
+    protected $db;
+
+    /**
+     * @var file_storage
+     */
+    protected $fs;
+
+    /**
+     * @param moodle_database $db
+     * @param file_storeage   $fs
+     */
+    public function __construct(moodle_database $db, file_storage $fs) {
+        $this->db = $db;
+        $this->fs = $fs;
     }
     /**
      * @inheritdoc
      */
     public function find_for(log_event $logevent) {
-        global $CFG;
-        $fs = get_file_storage();
+        $default = [];
+
         switch ($logevent->eventname) {
             case '\mod_assign\event\submission_graded':
-                $cm = get_coursemodule_from_id('assign', $logevent->contextinstanceid, 0, false, MUST_EXIST);
-                $course = get_course($cm->course);
-                $assign = new \assign(context_module::instance($logevent->contextinstanceid), $cm, $course);
-                $assign->get_submission_plugins();
-                $submissionfile = new assign_submission_file($assign, 'assign_submission_file');
-                // найти coursemodule
-                $submissionid = 0;
-                return $fs->get_area_files(
+                $assignid = $logevent->contextinstanceid;
+                $submissionid = $logevent->objectid;
+                if (false === $this->is_assign_submisssion_file_enabled($assignid)) {
+                    debugging("Для задания {$assignid} не включены ответы в виде файлов", DEBUG_DEVELOPER);
+                    break;
+                }
+                return $this->fs->get_area_files(
                     $logevent->contextid,
-                    'assignsubmission_file',
-                    ASSIGNSUBMISSION_FILE_FILEAREA,
+                    'assignsubmission_file',        // $component
+                    ASSIGNSUBMISSION_FILE_FILEAREA, // $filearea
                     $submissionid,
                     "id",                           // $sort
                     false                           // $includedirs
@@ -69,5 +77,24 @@ class file_finder_mod_assign extends file_finder {
             default:
                 return [];
         }
+
+        return $default;
+    }
+
+    /**
+     * @param log_event $logevent
+     * @return bool
+     */
+    protected function is_assign_submisssion_file_enabled($assignid) {
+        $sql = "SELECT true
+                FROM {assign_plugin_config} acfg
+                WHERE
+                    acfg.assignment  = :assignid
+                    AND acfg.name    = 'enabled'
+                    AND acfg.value   = '1'
+                    AND acfg.subtype = 'assignsubmission'
+                    AND acfg.plugin  = 'file'";
+
+        return (bool) $this->db->get_field_sql($sql, ['assignid' => $assignid]);
     }
 }
