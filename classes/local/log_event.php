@@ -27,7 +27,29 @@ namespace logstore_xapi\local;
 
 use coding_exception;
 use stored_file;
-
+/**
+ * @property-read int    $id
+ * @property-read string $eventname
+ * @property-read string $component
+ * @property-read string $action
+ * @property-read string $target
+ * @property-read string $objecttable
+ * @property-read int    $objectid
+ * @property-read string $crud
+ * @property-read string $edulevel
+ * @property-read int    $contextid
+ * @property-read string $contextlevel
+ * @property-read string $contextinstanceid
+ * @property-read int    $userid
+ * @property-read int    $courseid
+ * @property-read int    $relateduserid
+ * @property-read string $anonymous
+ * @property-read string $other
+ * @property-read int    $timecreated
+ * @property-read string $origin
+ * @property-read string $ip
+ * @property-read int    $realuserid
+ */
 class log_event {
 
     protected $record;
