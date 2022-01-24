@@ -88,10 +88,11 @@ class queue_service {
     }
 
     /**
-     * @param log_event[]  $eventids
-     * @param string $queuename
+     * @param log_event[] $events
+     * @param string      $queuename
+     * @param array       $payload
      */
-    public function push($events, $queuename, $payload = []) {
+    public function push(array $events, string $queuename, $payload = []) {
         $this->validate_queuename($queuename);
         if (false === is_array($events)) {
             $events = [$events];
@@ -118,21 +119,27 @@ class queue_service {
     }
 
     /**
-     * @param array $records
+     * @param queue_item[] $queueitems
      *
      * @return void
      */
     public function complete(array $queueitems) {
-        if ([] === $queueitems) {
-            return [];
-        }
-        array_walk($queueitems, fn(queue_item $r) => $r->mark_as_complete());
+        global $USER;
 
-        $this->db->update_record(
-            queue_item::TABLE,
-            array_map(fn($r) => $r->to_record(), $queueitems),
-            true // $bulk
+        if ([] === $queueitems) {
+            return;
+        }
+
+        list($insql, $inparams) = $this->db->get_in_or_equal(
+            array_map(fn(queue_item $r) => $r->get('id'), $queueitems)
         );
+        $insql = 'id ' . $insql;
+        $inparams = $inparams;
+
+        $this->db->set_field_select(queue_item::TABLE, 'isrunning', false, $insql, $inparams);
+        $this->db->set_field_select(queue_item::TABLE, 'timecompleted', time(), $insql, $inparams);
+        $this->db->set_field_select(queue_item::TABLE, 'timemodified', time(), $insql, $inparams);
+        $this->db->set_field_select(queue_item::TABLE, 'usermodified', $USER->id, $insql, $inparams);
 
         array_walk($queueitems, function (queue_item $qi) {
             $event = queue_item_completed::create_from_record($qi);
