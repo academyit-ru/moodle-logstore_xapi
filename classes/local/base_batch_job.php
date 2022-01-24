@@ -25,6 +25,7 @@
 namespace logstore_xapi\local;
 
 use logstore_xapi\local\persistent\queue_item;
+use moodle_database;
 
 abstract class base_batch_job {
 
