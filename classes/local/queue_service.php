@@ -88,7 +88,7 @@ class queue_service {
     }
 
     /**
-     * @param int[]  $eventids
+     * @param log_event[]  $eventids
      * @param string $queuename
      */
     public function push($events, $queuename, $payload = []) {
@@ -96,7 +96,7 @@ class queue_service {
         if (false === is_array($events)) {
             $events = [$events];
         }
-        $qitems = array_map(function ($event) use ($queuename, $payload) {
+        $qitems = array_map(function (log_event $event) use ($queuename, $payload) {
             return new queue_item(0, (object) [
                 'logrecordid' => $event->id,
                 'itemkey' => $this->make_item_key($event, $queuename),
