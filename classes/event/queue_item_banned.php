@@ -79,7 +79,7 @@ class queue_item_banned extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('queue_item_requeued_event', 'logstore_xapi');
+        return get_string('queue_item_banned_event', 'logstore_xapi');
     }
 
     /**
