@@ -64,17 +64,18 @@ class store implements log_writer {
         if ($isdisabledevent) {
             return $isdisabledevent;
         }
+
         $courses = explode(',', get_config('logstore_xapi', 'courses'));
-        $isdisabledevent = $isdisabledevent || !in_array($event->courseid, $courses);
-        if ($isdisabledevent) {
-            return $isdisabledevent;
+        $coursenotregistered = !in_array($event->courseid, $courses);
+        if ($coursenotregistered) {
+            return $coursenotregistered;
         }
+
         // Так как xapi используется только для интеграции с УНТИ то учитываем только их учётки
         $userids = $DB->get_fieldset_select('user', 'id', 'auth = ?', ['untissooauth']);
-        $userfromunti = in_array($event->userid, $userids) || in_array($event->relateduserid, $userids);
-        $isdisabledevent = $isdisabledevent || false === $userfromunti;
+        $usernotfromunti = !(in_array($event->userid, $userids) || in_array($event->relateduserid, $userids));
 
-        return $isdisabledevent;
+        return $usernotfromunti;
     }
 
     /**
