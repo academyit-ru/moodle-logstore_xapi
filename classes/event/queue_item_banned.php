@@ -40,15 +40,19 @@ use logstore_xapi\local\persistent\queue_item;
  */
 class queue_item_banned extends \core\event\base {
 
+    /**
+     * @var string|null
+     */
     protected $queueitembanreason = null;
 
     /**
      * @param queue_item $qitem
+     * @return self
      */
     public static function create_from_record(queue_item $qitem) {
         $event = self::create([
             'context' => \context_system::instance(),
-            'objectid' => $qitem->id,
+            'objectid' => $qitem->get('id'),
             'objecttable' => queue_item::TABLE,
             'other' => [
                 'logrecordid' => $qitem->get('logrecordid'),
@@ -58,7 +62,7 @@ class queue_item_banned extends \core\event\base {
             ]
         ]);
 
-        $event->add_record_snapshot(queue_item::TABLE, $qitem);
+        $event->add_record_snapshot(queue_item::TABLE, $qitem->to_record());
 
         return $event;
     }
@@ -134,6 +138,9 @@ class queue_item_banned extends \core\event\base {
         }
     }
 
+    /**
+     * @return mixed[]
+     */
     public static function get_other_mapping() {
         $othermapped = [];
         $othermapped['objectid'] = ['db' => 'logstore_xapi_queue', 'restore' => 'logstore_xapi_queue'];
@@ -147,7 +154,7 @@ class queue_item_banned extends \core\event\base {
      *
      * @return self
      */
-    public function set_ban_reason($reason) {
+    public function set_ban_reason(string $reason) {
         $this->queueitembanreason = $reason;
         return $this;
     }

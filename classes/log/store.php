@@ -80,7 +80,9 @@ class store implements log_writer {
 
     /**
      * Insert events in bulk to the database. Overrides helper_writer.
-     * @param array $events raw event data
+     * @param stdClass[] $events raw event data
+     *
+     * @return void
      */
     protected function insert_event_entries(array $events) {
         /** @var moodle_database $DB */
@@ -89,8 +91,11 @@ class store implements log_writer {
         $DB->insert_records('logstore_xapi_log', $events);
     }
 
+    /**
+     * @return int
+     */
     public function get_max_batch_size() {
-        return $this->get_config('maxbatchsize', 100);
+        return (int) $this->get_config('maxbatchsize', 100);
     }
 
     public function process_events(array $events) {

@@ -67,24 +67,43 @@ class queue_service {
     }
 
     /**
-     *
+     * @param int $limit
+     * @oaran string|null $queue
+     * @return queue_item[]
      *
      */
     public function pop($limit = 1, $queue = null) {
+        global $USER;
+
+        // Берём из очереди свежие записи
         $conditions = ['isbanned' => false, 'isrunning' => false];
         if ($queue) {
             $conditions['queue'] = $queue;
         }
+        $sort = 'priority ASC, timecreated ASC, timecompleted ASC';
         $items = queue_item::get_records(
             $conditions,
-            'priority ASC, timecreated ASC, timecompleted ASC',
+            $sort,
             '', // $order
             0, // $skip
             $limit
         );
-        queue_item::mark_as_running($items);
 
-        return $items;
+        // Помечаем их - "В обработке"
+        list($insql, $inparams) = $this->db->get_in_or_equal(
+            array_map(fn(queue_item $r) => $r->get('id'), $items)
+        );
+        $insql = 'id ' . $insql;
+        $inparams = $inparams;
+
+        $this->db->set_field_select(queue_item::TABLE, 'isrunning', true, $insql, $inparams);
+        $this->db->set_field_select(queue_item::TABLE, 'timestarted', time(), $insql, $inparams);
+        $this->db->set_field_select(queue_item::TABLE, 'timemodified', time(), $insql, $inparams);
+        $this->db->set_field_select(queue_item::TABLE, 'usermodified', $USER->id, $insql, $inparams);
+
+        // Извлекаем обновлённые данные для записей
+        $runningrecords = $this->db->get_records_select(queue_item::TABLE, $insql, $inparams, $sort);
+        return array_map(fn($r) => new queue_item(0, $r), $runningrecords);
     }
 
     /**

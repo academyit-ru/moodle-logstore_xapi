@@ -29,19 +29,29 @@ use logstore_xapi\local\persistent\queue_item;
 abstract class base_batch_job {
 
     /**
+     * @var moodle_database
+     */
+    protected $db;
+
+    /**
+     * @var queue_item[]
+     */
+    protected $queueitems;
+
+    /**
      * @var log_event[]
      */
     protected $events;
 
     /**
      *
-     * @return array
+     * @return queue_item[]
      */
     abstract public function result_success();
 
     /**
      *
-     * @return array
+     * @return queue_item[]
      */
     abstract public function result_error();
 

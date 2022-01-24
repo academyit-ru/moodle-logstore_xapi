@@ -25,13 +25,13 @@
 namespace logstore_xapi\local;
 
 use coding_exception;
-use file_system_filedir;
+use stored_file;
 
 abstract class file_finder {
 
     /**
      * Создаст подходящий класс ищейку для события журнала
-     * @param string $eventname
+     * @param log_event $logevent
      *
      * @return file_finder
      */
@@ -42,7 +42,6 @@ abstract class file_finder {
         switch ($logevent->component) {
             case 'mod_assign':
                 return new file_finder_mod_assign($DB, $fs);
-                break;
             default:
                 throw new coding_exception('Неизвестное событие ' . $logevent->component);
         }

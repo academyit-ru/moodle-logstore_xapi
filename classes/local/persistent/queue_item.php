@@ -104,6 +104,20 @@ class queue_item extends persistent {
     /**
      * @return self
      */
+    public function mark_as_running() {
+        global $USER;
+
+        $this->raw_set('isrunning', true);
+        $this->raw_set('timestarted', time());
+        $this->raw_set('timemodified', time());
+        $this->raw_set('usermodified', $USER->id);
+
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
     public function mark_as_complete() {
         global $USER;
 

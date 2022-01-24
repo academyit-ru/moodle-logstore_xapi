@@ -40,11 +40,6 @@ class emit_statements_batch_job extends base_batch_job {
     protected $queueitems;
 
     /**
-     * @var \stdClass[]
-     */
-    protected $events;
-
-    /**
      * @var queue_item[]
      */
     protected $resulterror;
@@ -55,7 +50,7 @@ class emit_statements_batch_job extends base_batch_job {
     protected $resultsuccess;
 
     /**
-     * @var xapi_records[]
+     * @var xapi_record[]
      */
     protected $xapirecords;
 
@@ -66,11 +61,11 @@ class emit_statements_batch_job extends base_batch_job {
 
     /**
      *
-     *
+     * @param queue_item[] $queueitems,
+     * @param moodle_database $db
      */
     public function __construct(array $queueitems, moodle_database $db) {
         $this->queueitems = $queueitems;
-        $this->events = [];
         $this->resulterror = [];
         $this->resultsuccess = [];
         $this->xapirecords = [];
@@ -78,14 +73,14 @@ class emit_statements_batch_job extends base_batch_job {
     }
 
     /**
-     * @return array
+     * @return queue_item[]
      */
     public function result_success() {
         return $this->resultsuccess;
     }
 
     /**
-     * @return array
+     * @return queue_item[]
      */
     public function result_error() {
         return $this->resulterror;
@@ -160,7 +155,10 @@ class emit_statements_batch_job extends base_batch_job {
         }
 
         $this->xapirecords = array_map(
-            fn($xapirecord) => $xapirecord->save(),
+            function (xapi_record $xapirecord) {
+                $xapirecord->save();
+                return $xapirecord;
+            },
             $xapirecords
         );
     }
@@ -192,7 +190,7 @@ class emit_statements_batch_job extends base_batch_job {
     /**
      * Фильтрует записи которые не удалось зарегистрировать в LRS
      *
-     * @param array $loadedevents
+     * @param stdClass[] $loadedevents
      *
      * @return array
      */
@@ -205,12 +203,12 @@ class emit_statements_batch_job extends base_batch_job {
     /**
      * Фильтрует записи которые были зарегистрированы в LRS
      *
-     * @param array $loadedevents
+     * @param stdClass[] $loadedevents
      *
      * @return array
      */
-    protected function filter_registered_staetments(array $loadedevent) {
-        $filtered = array_filter($loadedevent, fn($event) => $event['loaded'] === true);
+    protected function filter_registered_staetments(array $loadedevents) {
+        $filtered = array_filter($loadedevents, fn($event) => $event['loaded'] === true);
 
         return array_map(fn($ev) => $ev['event'], $filtered);
     }
@@ -220,7 +218,9 @@ class emit_statements_batch_job extends base_batch_job {
      *
      * @param array $loadedevents
      *
-     * @return <queue_item, $loadedevent>[]
+     * @return mixed[
+     *      [queue_item, $loadedevent]
+     * ]
      */
     protected function map_queueitems_with_loadedevent(array $loadedevents) {
         $queueitems = [];
@@ -242,7 +242,7 @@ class emit_statements_batch_job extends base_batch_job {
      * Если xAPI выражения были успешно зарегистрированы в LRS то будут
      * созданы записи в таблице logstore_xapi_records
      *
-     * @return xapi_records[]
+     * @return xapi_record[]
      */
     public function get_xapi_records() {
         return $this->xapirecords;

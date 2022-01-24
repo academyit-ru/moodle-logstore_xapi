@@ -57,7 +57,8 @@ class enqueue_jobs extends \core\task\scheduled_task {
 
     /**
      * Вернёт записи которые не были обработаны
-     * @param log_event[]
+     *
+     * @return log_event[]
      */
     protected function find_unhandled_events() {
         /** @var moodle_database $DB */
@@ -83,7 +84,7 @@ SQL;
     /**
      * @param log_event[] $events
      *
-     * @return <$eventrecords[], $queuename>[]
+     * @return mixed[log_event[], string] 2ой элемент это название очереди
      */
     protected function map_queues(array $events) {
         $tuples = [];
@@ -92,7 +93,7 @@ SQL;
             queue_service::QUEUE_PUBLISH_ATTACHMENTS => [],
         ];
         foreach ($events as $event) {
-            if ($this->has_attachments($event)) {
+            if ($event->has_attachments()) {
                 $map[queue_service::QUEUE_PUBLISH_ATTACHMENTS][] = $event;
             } else {
                 $map[queue_service::QUEUE_EMIT_STATEMENTS][] = $event;
@@ -103,18 +104,5 @@ SQL;
         }
 
         return $tuples;
-    }
-
-    /**
-     * Определит по типу события нужно ли публиковать артефакты
-     *
-     * @param \stdClass $eventrecord
-     *
-     * @return bool
-     */
-    protected function has_attachments($eventrecord) {
-        $logevent = new log_event($eventrecord);
-
-        return $logevent->has_attachments();
     }
 }

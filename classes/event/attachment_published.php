@@ -43,12 +43,15 @@ use logstore_xapi\local\persistent\xapi_attachment;
 class attachment_published extends \core\event\base {
 
     /**
+     * @param xapi_attachment $record
      * @param queue_item $qitem
+     * @param log_event $logrecord
+     * @return self
      */
     public static function create_from_record(xapi_attachment $record, queue_item $qitem, $logrecord) {
         $event = self::create([
             'context' => \context_system::instance(),
-            'objectid' => $record->id,
+            'objectid' => $record->get('id'),
             'objecttable' => xapi_attachment::TABLE,
             'other' => [
                 'logrecordid' => $record->get('eventid'),
@@ -58,9 +61,9 @@ class attachment_published extends \core\event\base {
             ]
         ]);
 
-        $event->add_record_snapshot(xapi_attachment::TABLE, $record);
-        $event->add_record_snapshot('logstore_xapi_log', $logrecord);
-        $event->add_record_snapshot(queue_item::TABLE, $qitem);
+        $event->add_record_snapshot(xapi_attachment::TABLE, $record->to_record());
+        $event->add_record_snapshot('logstore_xapi_log', $logrecord->to_record());
+        $event->add_record_snapshot(queue_item::TABLE, $qitem->to_record());
 
         return $event;
     }

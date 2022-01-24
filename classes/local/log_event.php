@@ -95,17 +95,4 @@ class log_event {
 
         return $result;
     }
-
-    /**
-     *
-     * @return stored_file[]
-     */
-    public function collect_attachments() {
-        $finder = file_finder::factory(
-            $this->record->eventname,
-            $this->record->component
-        );
-
-        return $finder->find_for($this);
-    }
 }

@@ -41,20 +41,21 @@ class queue_item_completed extends \core\event\base {
 
     /**
      * @param queue_item $qitem
+     * @return self
      */
     public static function create_from_record(queue_item $qitem) {
         $event = self::create([
             'context' => \context_system::instance(),
-            'objectid' => $qitem->id,
+            'objectid' => $qitem->get('id'),
             'objecttable' => queue_item::TABLE,
             'other' => [
-                'logrecordid' => $qitem->logrecordid,
-                'queue' => $qitem->queue,
-                'timecompleted' => $qitem->timecompleted
+                'logrecordid' => $qitem->get('logrecordid'),
+                'queue' => $qitem->get('queue'),
+                'timecompleted' => $qitem->get('timecompleted')
             ]
         ]);
 
-        $event->add_record_snapshot(queue_item::TABLE, $qitem);
+        $event->add_record_snapshot(queue_item::TABLE, $qitem->to_record());
 
         return $event;
     }
@@ -125,6 +126,9 @@ class queue_item_completed extends \core\event\base {
         }
     }
 
+    /**
+     * @return mixed[]
+     */
     public static function get_other_mapping() {
         $othermapped = [];
         $othermapped['objectid'] = ['db' => 'logstore_xapi_queue', 'restore' => 'logstore_xapi_queue'];

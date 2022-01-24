@@ -24,9 +24,10 @@
  */
 namespace logstore_xapi\local;
 
-use file_storage;
-use logstore_xapi\local\file_finder;
-use moodle_database;
+use \file_storage;
+use \logstore_xapi\local\file_finder;
+use \moodle_database;
+use \stored_file;
 
 require_once dirname(__DIR__, 7) . '/mod/assign/locallib.php';
 require_once dirname(__DIR__, 7) . '/mod/assign/submission/file/locallib.php';
@@ -73,7 +74,6 @@ class file_finder_mod_assign extends file_finder {
                     "id",                           // $sort
                     false                           // $includedirs
                 );
-                break;
             default:
                 return [];
         }
@@ -82,7 +82,7 @@ class file_finder_mod_assign extends file_finder {
     }
 
     /**
-     * @param log_event $logevent
+     * @param int $assignid
      * @return bool
      */
     protected function is_assign_submisssion_file_enabled($assignid) {

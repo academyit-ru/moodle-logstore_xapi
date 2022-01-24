@@ -42,11 +42,13 @@ class xapi_record_registered extends \core\event\base {
 
     /**
      * @param xapi_record $xapirecord
+     *
+     * @return self
      */
     public static function create_from_record(xapi_record $xapirecord) {
         $event = self::create([
             'context' => \context_system::instance(),
-            'objectid' => $xapirecord->id,
+            'objectid' => $xapirecord->get('id'),
             'objecttable' => xapi_record::TABLE,
             'other' => [
                 'lrs_uuid' => $xapirecord->get('logrecordid'),
@@ -55,7 +57,7 @@ class xapi_record_registered extends \core\event\base {
             ]
         ]);
 
-        $event->add_record_snapshot(xapi_record::TABLE, $xapirecord);
+        $event->add_record_snapshot(xapi_record::TABLE, $xapirecord->to_record());
 
         return $event;
     }
