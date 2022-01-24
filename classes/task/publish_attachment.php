@@ -42,13 +42,15 @@ class publish_attachment extends \core\task\scheduled_task {
      * @inheritdoc
      */
     public function execute() {
+        global $DB;
+
         $batchsize = get_config('logstore_xapi', 'maxbatchsize_s3');
         if (false === $batchsize) {
             $batchsize = static::DEFAULT_BATCH_SIZE;
         }
         $queueservice = queue_service::instance();
         $records = $queueservice->pop($batchsize, queue_service::QUEUE_PUBLISH_ATTACHMENTS);
-        $batchjob = new publish_attachments_batch_job($records);
+        $batchjob = new publish_attachments_batch_job($records, $DB);
         $batchjob->run();
         $queueservice->complete($batchjob->result_success());
         $queueservice->requeue($batchjob->result_error());

@@ -71,7 +71,7 @@ class publish_attachments_batch_job extends base_batch_job {
      * @param array $queueitems
      * @param moodle_database $db
      */
-    public function __consturct(array $queueitems, moodle_database $db) {
+    public function __construct(array $queueitems, moodle_database $db) {
         $this->queueitems = $queueitems;
         $this->events = [];
         $this->resulterror = [];
