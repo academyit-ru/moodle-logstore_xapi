@@ -26,6 +26,7 @@ namespace logstore_xapi\task;
 
 use logstore_xapi\local\emit_statements_batch_job;
 use logstore_xapi\local\queue_service;
+use moodle_database;
 
 class emit_statement extends \core\task\scheduled_task {
 
@@ -42,6 +43,9 @@ class emit_statement extends \core\task\scheduled_task {
      * @inheritdoc
      */
     public function execute() {
+        /** @var moodle_database $DB */
+        global $DB;
+
         $batchsize = get_config('logstore_xapi', 'maxbatchsize');
         if (false === $batchsize) {
             $batchsize = static::DEFAULT_BATCH_SIZE;
@@ -49,7 +53,7 @@ class emit_statement extends \core\task\scheduled_task {
         $queueservice = queue_service::instance();
 
         $records = $queueservice->pop($batchsize, queue_service::QUEUE_EMIT_STATEMENTS);
-        $batchjob = new emit_statements_batch_job($records);
+        $batchjob = new emit_statements_batch_job($records, $DB);
         $batchjob->run();
 
         $queueservice->complete($batchjob->result_success());
