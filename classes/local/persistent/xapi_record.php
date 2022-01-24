@@ -27,10 +27,8 @@ namespace logstore_xapi\local\persistent;
 
 defined('MOODLE_INTERNAL') || die();
 
-use core\invalid_persistent_exception;
 use core\persistent;
-use logstore_xapi\event\xapi_record_regisrered;
-use moodle_database;
+use logstore_xapi\event\xapi_record_registered;
 
 class xapi_record extends persistent {
 
@@ -64,7 +62,7 @@ class xapi_record extends persistent {
      * @inheritdoc
      */
     protected function after_create() {
-        $event = xapi_record_regisrered::create_from_record($this);
+        $event = xapi_record_registered::create_from_record($this);
         $event->trigger();
     }
 }
