@@ -26,7 +26,6 @@
 namespace logstore_xapi\local;
 
 use coding_exception;
-use stored_file;
 /**
  * @property-read int    $id
  * @property-read string $eventname
@@ -52,6 +51,9 @@ use stored_file;
  */
 class log_event {
 
+    /**
+     * @var \stdClass
+     */
     protected $record;
 
     /**
