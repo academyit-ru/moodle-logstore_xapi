@@ -71,7 +71,6 @@ class queue_service {
      *
      */
     public function pop($limit = 1, $queue = null) {
-        return [];
         $conditions = ['isbanned' => false, 'isrunning' => false];
         if ($queue) {
             $conditions['queue'] = $queue;
