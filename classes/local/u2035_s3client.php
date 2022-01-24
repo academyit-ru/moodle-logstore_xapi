@@ -50,7 +50,7 @@ class u2035_s3client {
     /**
      * @param AwsS3Client $client
      */
-    public function __consturct(AwsS3Client $client, $defaultbucketname = null) {
+    public function __construct(AwsS3Client $client, $defaultbucketname = null) {
         $this->client = $client;
         if ($defaultbucketname) {
         $this->defaultbucketname = $defaultbucketname;
@@ -82,7 +82,7 @@ class u2035_s3client {
             'version' => static::AWS_API_VERSION
         ]);
 
-        return new static($s3client, $awsbucket);
+        return new self($s3client, $awsbucket);
     }
 
     /**
