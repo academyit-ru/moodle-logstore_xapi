@@ -21,10 +21,9 @@
  * @copyright  2022 academyit.ru
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace logstore_xapi\event;
+namespace logstore_xapi\local;
 
 use logstore_xapi\event\attachment_published;
-use logstore_xapi\local\persistent\queue_item;
 use logstore_xapi\local\queue_service;
 
 /**
