@@ -38,7 +38,7 @@ use logstore_xapi\local\persistent\xapi_record;
  *      - int    timeregistered метка времени завершения задачи
  * }
  */
-class xapi_record_regisrered extends \core\event\base {
+class xapi_record_registered extends \core\event\base {
 
     /**
      * @param xapi_record $xapirecord
