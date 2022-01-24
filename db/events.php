@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 $observers = array(
     array(
         'eventname' => '\logstore_xapi\event\attachment_published',
-        'callback'  => '\logstore_xapi\log\observer::attachment_published',
+        'callback'  => '\logstore_xapi\local\observer::attachment_published',
         'internal'  => false, // This means that we get events only after transaction commit.
         'priority'  => 1000,
     ),
