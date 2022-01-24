@@ -30,7 +30,7 @@ use logstore_xapi\local\persistent\queue_item;
 use logstore_xapi\local\persistent\xapi_attachment;
 use moodle_database;
 use moodle_exception;
-use S3Exception;
+use Aws\S3\Exception\S3Exception;
 use stored_file;
 use Throwable;
 use zip_packer;
@@ -43,7 +43,7 @@ class publish_attachments_batch_job extends base_batch_job {
     protected $queueitems;
 
     /**
-     * @var \stdClass[]
+     * @var log_event[]
      */
     protected $events;
 
@@ -68,7 +68,7 @@ class publish_attachments_batch_job extends base_batch_job {
     protected $db;
 
     /**
-     * @param array $queueitems
+     * @param queue_item[] $queueitems
      * @param moodle_database $db
      */
     public function __construct(array $queueitems, moodle_database $db) {
@@ -84,14 +84,14 @@ class publish_attachments_batch_job extends base_batch_job {
      * @inheritdoc
      */
     public function result_success() {
-        return [];
+        return $this->resultsuccess;
     }
 
     /**
      * @inheritdoc
      */
     public function result_error() {
-        return [];
+        return $this->resulterror;
     }
 
     /**
@@ -198,17 +198,7 @@ class publish_attachments_batch_job extends base_batch_job {
     }
 
     /**
-     * @param \stdClass $logevent
-     *
-     * @return stored_file[]
-     */
-    protected function get_event_files($logevent) {
-        $filefinder = new file_finder($logevent);
-        return $filefinder->get_files();
-    }
-
-    /**
-     * @param array $files
+     * @param stored_file[] $files
      *
      * @return string|bool путь к архиву во временной папке или false если не удалось создать архив
      */
@@ -217,7 +207,7 @@ class publish_attachments_batch_job extends base_batch_job {
 
         $tempzip = tempnam($CFG->tempdir.'/', 'logstore_xapi_attachmnts');
         $filelist = [];
-        /** @var sotred_file $file */
+        /** @var stored_file $file */
         foreach ($files as $file) {
             $filename = $file->get_filename();
             $filelist[$filename] = $file;
@@ -232,10 +222,10 @@ class publish_attachments_batch_job extends base_batch_job {
     }
 
     /**
-     * @param \stdClass $logevent запись из logstore_xapi_log
+     * @param log_event $logevent запись из logstore_xapi_log
      * @return string Название файла для публикации в S3
      */
-    protected function get_attachment_filename($logevent) {
+    protected function get_attachment_filename(log_event $logevent) {
         /** @var moodle_database $DB */
         global $DB;
 
