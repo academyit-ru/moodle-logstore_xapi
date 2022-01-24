@@ -192,7 +192,7 @@ class queue_item extends persistent {
         }
 
         $this->raw_set('isbanned', true);
-        $this->raw_set('timemodified', true);
+        $this->raw_set('timemodified', time());
         $this->raw_set('usermodified', $USER->id);
 
         return $this;
