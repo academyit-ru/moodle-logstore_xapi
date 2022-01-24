@@ -102,36 +102,6 @@ class queue_item extends persistent {
     }
 
     /**
-     * Пометит пачку записей что они в обработке
-     *
-     * @param self[]
-     *
-     * @return self[]
-     */
-    public static function mark_as_running(array $records) {
-        /** @var moodle_database $DB */
-        global $DB;
-        global $USER;
-
-        if ([] === $records) {
-            return [];
-        }
-        array_walk(
-            $records,
-            fn(queue_item $r) => $r->set('isrunning', true)
-                                   ->set('timestarted', time())
-                                   ->set('timemodified', time())
-                                   ->set('usermodified', $USER->id)
-        );
-
-        $DB->update_record(
-            static::TABLE,
-            array_map(fn($r) => $r->to_record(), $records),
-            true // $bulk
-        );
-    }
-
-    /**
      * @return self
      */
     public function mark_as_complete() {
