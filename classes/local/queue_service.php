@@ -218,7 +218,10 @@ class queue_service {
 
     /**
      * @param string $queuename
+     *
      * @throws coding_exception
+     *
+     * @return bool
      */
     protected function validate_queuename($queuename) {
         $allowedqueuenames = [
@@ -232,11 +235,12 @@ class queue_service {
     }
 
     /**
-     * @param \stdClass $event
+     * @param log_event $event
+     * @param string $queuename
      *
      * @return string
      */
-    protected function make_item_key($event, $queuename) {
+    protected function make_item_key(log_event $event, string $queuename) {
         return sprintf(
             '%s:%s:%s:%d',
             $queuename,
