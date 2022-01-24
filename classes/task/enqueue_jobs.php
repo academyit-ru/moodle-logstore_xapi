@@ -57,7 +57,7 @@ class enqueue_jobs extends \core\task\scheduled_task {
 
     /**
      * Вернёт записи которые не были обработаны
-     * @param \stdClass[]
+     * @param log_event[]
      */
     protected function find_unhandled_events() {
         /** @var moodle_database $DB */
@@ -75,11 +75,13 @@ SQL;
         if (false === $limitnum) {
             $limitnum = static::ENQUEUE_JOB_BATCHLIMIT;
         }
-        return $DB->get_records_sql($sql, [], 0, $limitnum);
+        $records = $DB->get_records_sql($sql, [], 0, $limitnum);
+
+        return array_map(fn($r) => new log_event($r), $records);
     }
 
     /**
-     * @param array $events
+     * @param log_event[] $events
      *
      * @return <$eventrecords[], $queuename>[]
      */
