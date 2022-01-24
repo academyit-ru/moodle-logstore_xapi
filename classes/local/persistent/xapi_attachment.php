@@ -28,7 +28,6 @@ namespace logstore_xapi\local\persistent;
 defined('MOODLE_INTERNAL') || die();
 
 use core\persistent;
-use logstore_xapi\event\xapi_record_regisrered;
 
 class xapi_attachment extends persistent {
 
@@ -74,13 +73,5 @@ class xapi_attachment extends persistent {
                 'default' => '',
             ],
         ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function after_create() {
-        $event = xapi_record_regisrered::create_from_record($this);
-        $event->trigger();
     }
 }
