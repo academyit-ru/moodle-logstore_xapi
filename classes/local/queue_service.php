@@ -61,7 +61,7 @@ class queue_service {
     public static function instance() {
         global $DB;
 
-        $instance = new static($DB);
+        $instance = new self($DB);
 
         return $instance;
     }
