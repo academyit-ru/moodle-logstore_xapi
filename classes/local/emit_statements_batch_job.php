@@ -133,7 +133,7 @@ class emit_statements_batch_job extends base_batch_job {
         $registered = $this->filter_registered_staetments($loadedevents);
 
         $errortuples = $this->map_queueitems_with_loadedevent($failed);
-        $this->resulterror[] = array_map(function($tuple) {
+        $this->resulterror = array_map(function($tuple) {
             /** @var queue_item $qitem */
             list($qitem, $loadedevent) = $tuple;
             $errormsg = $loadedevent['error'] ?? '!!! EMPTY ERROR MESSAGE !!!';
@@ -181,7 +181,7 @@ class emit_statements_batch_job extends base_batch_job {
      *
      * @return string|false
      */
-    protected function get_config($name, $default = null) {
+    protected function get_config(string $name, $default = null) {
         $value = get_config('logstore_xapi', $name);
         if (!$value) {
             return $default;
@@ -194,12 +194,17 @@ class emit_statements_batch_job extends base_batch_job {
      *
      * @param stdClass[] $loadedevents
      *
-     * @return log_event[]
+     * @return mixed[] [
+     *      'event' => log_event,
+     *      'statement' => string,
+     *      'transformed' => bool,
+     *      'loaded' => false,
+     *      'uuid' => null,
+     *      'error' => string
+     * ]
      */
     protected function filter_failed_statements(array $loadedevents) {
-        $filtered = array_filter($loadedevents, function($event) {return $event['loaded'] === false;});
-
-        return array_map(function($ev) {return new log_event($ev['event']);}, $filtered);
+        return array_filter($loadedevents, function($event) {return $event['loaded'] === false;});
     }
 
     /**
@@ -207,12 +212,17 @@ class emit_statements_batch_job extends base_batch_job {
      *
      * @param \stdClass[] $loadedevents
      *
-     * @return log_event[]
+     * @return mixed[] [
+     *      'event' => log_event,
+     *      'statement' => string,
+     *      'transformed' => bool,
+     *      'loaded' => true,
+     *      'uuid' => string,
+     *      'error' => null
+     * ]
      */
     protected function filter_registered_staetments(array $loadedevents) {
-        $filtered = array_filter($loadedevents, function($event) {$event['loaded'] === true;});
-
-        return array_map(function($ev) {return new log_event($ev['event']);}, $filtered);
+        return array_filter($loadedevents, function($event) {$event['loaded'] === true;});
     }
 
     /**
@@ -231,11 +241,11 @@ class emit_statements_batch_job extends base_batch_job {
         }
         return array_filter(
             array_map(function ($loadedevent) use ($queueitems) {
-                $logrecord = $loadedevent['event'];
+                $logrecord = $loadedevent['event'] ?? null;
                 if (array_key_exists($logrecord->id, $queueitems)) {
                     return false;
                 }
-                return [$queueitems[$logrecord->id], $loadedevent];
+                return [$queueitems[$logrecord->id], $logrecord];
             }, $loadedevents)
         );
     }

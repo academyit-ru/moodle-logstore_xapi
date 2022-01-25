@@ -89,6 +89,9 @@ class queue_service {
             0, // $skip
             $limit
         );
+        if ([] === $items) {
+            return [];
+        }
 
         // Помечаем их - "В обработке"
         list($insql, $inparams) = $this->db->get_in_or_equal(
@@ -241,7 +244,7 @@ class queue_service {
      */
     protected function get_attempts_limit() {
         $limit = get_config('logstore_xapi', 'queueitemattemptslimit');
-        if (false === $limit) {
+        if (! $limit) {
             $limit = static::DEFAULT_ATTEMPTS_LIMIT;
         }
 

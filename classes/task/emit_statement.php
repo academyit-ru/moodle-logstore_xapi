@@ -57,13 +57,19 @@ class emit_statement extends \core\task\scheduled_task {
         try {
             mtrace(sprintf('Gettig items from queue %s...', queue_service::QUEUE_EMIT_STATEMENTS));
             $records = $queueservice->pop($batchsize, queue_service::QUEUE_EMIT_STATEMENTS);
+            if (0 === count($records)) {
+                mtrace('There are no log records to sent. Stopping.');
+                return;
+            }
             mtrace(sprintf('-- Queue items count %d', count($records)));
             $batchjob = new emit_statements_batch_job($records, $DB);
             $batchjob->run();
             $completeditems = $batchjob->result_success();
             $queueservice->complete($completeditems);
             $itemswitherror = $batchjob->result_error();
-            $queueservice->requeue($itemswitherror);
+            if ([] !== $itemswitherror) {
+                $queueservice->requeue($itemswitherror);
+            }
             mtrace(sprintf('-- Completed %d; Has errors %d', count($completeditems), count($itemswitherror)));
         } catch (moodle_exception $e) {
             $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s %s debug: %s', static::class, $e->getMessage(), $e->debuginfo);
