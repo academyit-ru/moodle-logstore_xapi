@@ -45,7 +45,7 @@ class file_finder_mod_assign extends file_finder {
 
     /**
      * @param moodle_database $db
-     * @param file_storeage   $fs
+     * @param file_storage    $fs
      */
     public function __construct(moodle_database $db, file_storage $fs) {
         $this->db = $db;
