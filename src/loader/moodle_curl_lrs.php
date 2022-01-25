@@ -29,7 +29,7 @@ function load(array $config, array $events) {
     $sendhttpstatements = function (array $config, array $statements) {
         $endpoint = $config['lrs_endpoint'];
         $token = $config['lrs_token'];
-        $proxyendpoint = $config['lrs_proxy_endpoint'];
+        // $proxyendpoint = $config['lrs_proxy_endpoint'] ?? '';
 
         $url = utils\correct_endpoint($endpoint).'/statements';
         $postdata = json_encode($statements);
@@ -42,10 +42,6 @@ function load(array $config, array $events) {
                 'Content-Type: application/json; charset=utf-8',
             ],
         ]);
-
-        // echo '<pre>';
-        // print_r($responsetext);
-        // echo '</pre>';
 
         $responsecode = $request->info['http_code'];
 
