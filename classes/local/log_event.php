@@ -25,6 +25,7 @@
  */
 namespace logstore_xapi\local;
 
+use ArrayAccess;
 use coding_exception;
 /**
  * @property-read int    $id
@@ -49,7 +50,7 @@ use coding_exception;
  * @property-read string $ip
  * @property-read int    $realuserid
  */
-class log_event {
+class log_event implements ArrayAccess {
 
     /**
      * @var \stdClass
@@ -96,5 +97,29 @@ class log_event {
         }
 
         return $result;
+    }
+
+    public function offsetExists($offset): bool {
+        return isset($this->record->$offset);
+    }
+
+    public function offsetGet($offset) {
+        return $this->record->$offset;
+    }
+
+    public function offsetSet($offset, $value): void {
+        $this->record->$offset = $value;
+    }
+
+    public function offsetUnset($offset): void {
+        $this->record->$offset = null;
+    }
+
+    /**
+     *
+     * @return \stdClass
+     */
+    public function to_record() {
+        return $this->record;
     }
 }
