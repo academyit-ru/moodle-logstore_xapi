@@ -24,7 +24,7 @@ defined('MOODLE_INTERNAL') || die();
  * @param array ['result' => null|string, 'error' => null|string] по умолчанию []
  *
  * @return array [
- *      'event' => \stdClass,
+ *      'event' => log_event,
  *      'statement' => string,
  *      'transformed' => bool,
  *      'loaded' => bool,

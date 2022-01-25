@@ -18,9 +18,10 @@ namespace src\transformer\events\core;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 
-function user_created(array $config, \stdClass $event) {
+function user_created(array $config, log_event $event) {
     $repo = $config['repo'];
     $user = $repo->read_record_by_id('user', $event->relateduserid);
     $lang = $config['source_lang'];

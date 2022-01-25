@@ -18,9 +18,10 @@ namespace src\transformer\events\mod_assign;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 
-function assignment_graded(array $config, \stdClass $event) {
+function assignment_graded(array $config, log_event $event) {
     $repo = $config['repo'];
     $grade = $repo->read_record_by_id($event->objecttable, $event->objectid);
     $user = $repo->read_record_by_id('user', $grade->userid);

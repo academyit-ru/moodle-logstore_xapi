@@ -15,8 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace src\transformer\utils;
+
+use logstore_xapi\local\log_event;
+
 defined('MOODLE_INTERNAL') || die();
 
-function get_event_timestamp(\stdClass $event) {
+function get_event_timestamp(log_event $event) {
     return create_timestamp($event->timecreated);
 }

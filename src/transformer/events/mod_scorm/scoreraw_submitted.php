@@ -18,9 +18,10 @@ namespace src\transformer\events\mod_scorm;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 
-function scoreraw_submitted(array $config, \stdClass $event) {
+function scoreraw_submitted(array $config, log_event $event) {
     $repo = $config['repo'];
     $user = $repo->read_record_by_id('user', $event->userid);
     $course = $repo->read_record_by_id('course', $event->courseid);

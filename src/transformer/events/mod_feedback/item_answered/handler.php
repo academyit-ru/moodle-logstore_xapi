@@ -18,9 +18,10 @@ namespace src\transformer\events\mod_feedback\item_answered;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 
-function handler(array $config, \stdClass $event, \stdClass $feedbackvalue) {
+function handler(array $config, log_event $event, \stdClass $feedbackvalue) {
     $repo = $config['repo'];
     $feedbackitem = $repo->read_record_by_id('feedback_item', $feedbackvalue->item);
 

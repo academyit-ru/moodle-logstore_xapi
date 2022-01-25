@@ -15,9 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace src\transformer\utils;
+
+use logstore_xapi\local\log_event;
+
 defined('MOODLE_INTERNAL') || die();
 
-function get_info(array $config, \stdClass $event) {
+function get_info(array $config, log_event $event) {
     return [
         $config['source_url'] => $config['source_version'],
         $config['plugin_url'] => $config['plugin_version'],
