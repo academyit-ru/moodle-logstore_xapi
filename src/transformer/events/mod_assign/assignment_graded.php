@@ -56,7 +56,8 @@ function assignment_graded(array $config, \stdClass $event) {
         $scorescaled = $scoreraw / $scoremin;
     }
 
-    return [[
+    $attachments = utils\get_activity\attachments($config, $event);
+    $result = [[
         'actor' => utils\get_user($config, $user),
         'verb' => [
             'id' => 'http://adlnet.gov/expapi/verbs/scored',
@@ -92,6 +93,11 @@ function assignment_graded(array $config, \stdClass $event) {
                     utils\get_activity\source($config),
                 ],
             ],
-        ]
+        ],
     ]];
+    if ([] !== $attachments) {
+        $result['attachments'] = $attachments;
+    }
+
+    return $result;
 }
