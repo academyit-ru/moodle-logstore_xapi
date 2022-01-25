@@ -192,31 +192,31 @@ class emit_statements_batch_job extends base_batch_job {
      *
      * @param stdClass[] $loadedevents
      *
-     * @return array
+     * @return log_event[]
      */
     protected function filter_failed_statements(array $loadedevents) {
         $filtered = array_filter($loadedevents, fn($event) => $event['loaded'] === false);
 
-        return array_map(fn($ev) => $ev['event'], $filtered);
+        return array_map(fn($ev) => new log_event($ev['event']), $filtered);
     }
 
     /**
      * Фильтрует записи которые были зарегистрированы в LRS
      *
-     * @param stdClass[] $loadedevents
+     * @param \stdClass[] $loadedevents
      *
-     * @return array
+     * @return log_event[]
      */
     protected function filter_registered_staetments(array $loadedevents) {
         $filtered = array_filter($loadedevents, fn($event) => $event['loaded'] === true);
 
-        return array_map(fn($ev) => $ev['event'], $filtered);
+        return array_map(fn($ev) => new log_event($ev['event']), $filtered);
     }
 
     /**
      * Отфильтрует список задач по $loadedevents
      *
-     * @param array $loadedevents
+     * @param log_event[] $loadedevents
      *
      * @return mixed[
      *      [queue_item, $loadedevent]

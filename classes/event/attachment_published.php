@@ -26,6 +26,7 @@ namespace logstore_xapi\event;
 
 use logstore_xapi\local\persistent\queue_item;
 use logstore_xapi\local\persistent\xapi_attachment;
+use logstore_xapi\local\log_event;
 
 /**
  * Event класс события attachment_published.
@@ -48,7 +49,7 @@ class attachment_published extends \core\event\base {
      * @param log_event $logrecord
      * @return self
      */
-    public static function create_from_record(xapi_attachment $record, queue_item $qitem, $logrecord) {
+    public static function create_from_record(xapi_attachment $record, queue_item $qitem, log_event $logrecord) {
         $event = self::create([
             'context' => \context_system::instance(),
             'objectid' => $record->get('id'),

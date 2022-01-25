@@ -107,11 +107,11 @@ class queue_service {
     }
 
     /**
-     * @param log_event[] $events
-     * @param string      $queuename
-     * @param array       $payload
+     * @param log_event[]|log_event $events
+     * @param string                $queuename
+     * @param array                 $payload
      */
-    public function push(array $events, string $queuename, $payload = []) {
+    public function push($events, string $queuename, $payload = []) {
         $this->validate_queuename($queuename);
         if (false === is_array($events)) {
             $events = [$events];
@@ -167,7 +167,7 @@ class queue_service {
     }
 
     /**
-     * @param queue_item[] $records
+     * @param queue_item[] $queueitems
      *
      * @return void
      */
@@ -200,6 +200,7 @@ class queue_service {
             $tobebanned[] = $qitem;
         }
 
+        $toupdate = array_merge($toberequeued, $tobebanned);
         array_walk($toupdate, function (queue_item $qi) {
             if (false === $qi->is_valid()) {
                 $msg = sprintf(

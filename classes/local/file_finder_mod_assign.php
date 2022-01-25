@@ -24,10 +24,9 @@
  */
 namespace logstore_xapi\local;
 
-use \file_storage;
-use \logstore_xapi\local\file_finder;
-use \moodle_database;
-use \stored_file;
+use file_storage;
+use logstore_xapi\local\file_finder;
+use moodle_database;
 
 require_once dirname(__DIR__, 7) . '/mod/assign/locallib.php';
 require_once dirname(__DIR__, 7) . '/mod/assign/submission/file/locallib.php';
@@ -60,7 +59,7 @@ class file_finder_mod_assign extends file_finder {
 
         switch ($logevent->eventname) {
             case '\mod_assign\event\submission_graded':
-                $assignid = $logevent->contextinstanceid;
+                $assignid = (int) $logevent->contextinstanceid;
                 $submissionid = $logevent->objectid;
                 if (false === $this->is_assign_submisssion_file_enabled($assignid)) {
                     debugging("Для задания {$assignid} не включены ответы в виде файлов", DEBUG_DEVELOPER);
