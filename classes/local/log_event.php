@@ -93,7 +93,10 @@ class log_event implements ArrayAccess {
     public function __get($name) {
         $result = $this->record->$name ?? null;
         if (!$result) {
-            throw new coding_exception(static::class . ': неизвестное свойство записи', $name);
+            throw new coding_exception(
+                static::class . ': неизвестное свойство записи ' . $name,
+                json_encode(['name' => $name, 'record' => $this->record])
+            );
         }
 
         return $result;

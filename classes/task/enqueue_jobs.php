@@ -58,6 +58,7 @@ class enqueue_jobs extends \core\task\scheduled_task {
 
         foreach ($eventsqueues as $tuple) {
             list($events, $queuename) = $tuple;
+            mtrace(sprintf('-- Queue: %s; Events count: %d', $queuename, count($events)));
             $queueservice->push($events, $queuename);
         }
     }

@@ -27,6 +27,8 @@ namespace logstore_xapi\task;
 use logstore_xapi\local\emit_statements_batch_job;
 use logstore_xapi\local\queue_service;
 use moodle_database;
+use moodle_exception;
+use Throwable;
 
 class emit_statement extends \core\task\scheduled_task {
 
@@ -52,11 +54,27 @@ class emit_statement extends \core\task\scheduled_task {
         }
         $queueservice = queue_service::instance();
 
-        $records = $queueservice->pop($batchsize, queue_service::QUEUE_EMIT_STATEMENTS);
-        $batchjob = new emit_statements_batch_job($records, $DB);
-        $batchjob->run();
-
-        $queueservice->complete($batchjob->result_success());
-        $queueservice->requeue($batchjob->result_error());
+        try {
+            mtrace(sprintf('Gettig items from queue %s...', queue_service::QUEUE_EMIT_STATEMENTS));
+            $records = $queueservice->pop($batchsize, queue_service::QUEUE_EMIT_STATEMENTS);
+            mtrace(sprintf('-- Queue items count %d', count($records)));
+            $batchjob = new emit_statements_batch_job($records, $DB);
+            $batchjob->run();
+            $completeditems = $batchjob->result_success();
+            $queueservice->complete($completeditems);
+            $itemswitherror = $batchjob->result_error();
+            $queueservice->requeue($itemswitherror);
+            mtrace(sprintf('-- Completed %d; Has errors %d', count($completeditems), count($itemswitherror)));
+        } catch (moodle_exception $e) {
+            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s %s debug: %s', static::class, $e->getMessage(), $e->debuginfo);
+            error_log($errmsg);
+            debugging($errmsg, DEBUG_DEVELOPER);
+            $queueservice->requeue($records);
+        } catch (Throwable $e) {
+            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s %s', static::class, $e->getMessage());
+            error_log($errmsg);
+            debugging($errmsg, DEBUG_DEVELOPER);
+            $queueservice->requeue($records);
+        }
     }
 }
