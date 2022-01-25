@@ -33,9 +33,7 @@ function handler($config, $events) {
         ], $config['loader']);
 
         $transformedevents = \src\transformer\handler($transformerconfig, $events);
-		/*echo '<pre>';
-        print_r($transformedevents);
-        echo '</pre>';*/
+
         $loadedevents = \src\loader\handler($loaderconfig, $transformedevents);
 
         return $loadedevents;
