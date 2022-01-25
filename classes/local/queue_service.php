@@ -197,6 +197,11 @@ class queue_service {
         $tobebanned = [];
         /** @var queue_item $qitem */
         foreach ($queueitems as $qitem) {
+            $dbgmsg = sprintf(
+                'id: %d isbanned: %d attemptlimit: %d attempts: %d',
+                $qitem->get('id'), $qitem->get('isbanned'), $attemptslimit, $qitem->get('attempts')
+            );
+            debugging($dbgmsg, DEBUG_DEVELOPER);
             if (false === $qitem->get('isbanned') && $attemptslimit > $qitem->get('attempts')) {
                 $toberequeued[] = $qitem;
                 continue;
@@ -204,6 +209,7 @@ class queue_service {
             // либо задача была заблокирована либо достигнут лимит попыток
             $qitem->mark_as_banned();
             $tobebanned[] = $qitem;
+            debugging(sprintf('qitem id:%d is banned', $qitem->get('id')), DEBUG_DEVELOPER);
         }
 
         $toupdate = array_merge($toberequeued, $tobebanned);
