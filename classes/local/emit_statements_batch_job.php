@@ -69,6 +69,7 @@ class emit_statements_batch_job extends base_batch_job {
         $this->resulterror = [];
         $this->resultsuccess = [];
         $this->xapirecords = [];
+        $this->events = [];
         $this->db = $db;
     }
 
@@ -95,6 +96,7 @@ class emit_statements_batch_job extends base_batch_job {
 
         $pluginrelease = $this->get_plugin_release();
         $logerror = function ($message = '') {
+            error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $message));
             debugging($message, DEBUG_NORMAL);
         };
         $loginfo = function ($message = '') {
