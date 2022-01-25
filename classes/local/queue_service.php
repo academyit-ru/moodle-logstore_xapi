@@ -33,6 +33,7 @@ use logstore_xapi\event\queue_item_completed;
 use logstore_xapi\event\queue_item_requeued;
 use logstore_xapi\local\persistent\queue_item;
 use moodle_database;
+use moodle_exception;
 use Throwable;
 
 class queue_service {
@@ -129,8 +130,12 @@ class queue_service {
         foreach ($qitems as $qitem) {
             try {
                 $qitem->save();
+            } catch (moodle_exception $e) {
+                error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s DEBUGINFO: %s', $e->getMessage(), $e->debuginfo));
+                debugging(sprintf('[LOGSTORE_XAPI][ERROR] %s DEBUGINFO: %s', $e->getMessage(), $e->debuginfo), DEBUG_DEVELOPER);
             } catch (Throwable $e) {
                 error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()));
+                debugging(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()), DEBUG_DEVELOPER);
             }
         }
 
@@ -182,6 +187,7 @@ class queue_service {
                     $qi->mark_as_complete()
                        ->increase_attempt_number();
                 }
+                return $qi;
             },
             $queueitems
         );
@@ -262,10 +268,9 @@ class queue_service {
      */
     protected function make_item_key(log_event $event, string $queuename) {
         return sprintf(
-            '%s:%s:%s:%d',
+            '%s:%s:%d',
             $queuename,
-            $event->component,
-            str_replace('\'', '_', $event->eventname),
+            str_replace('\\', '_', $event->eventname),
             $event->id
         );
     }

@@ -29,8 +29,6 @@ defined('MOODLE_INTERNAL') || die();
 
 use coding_exception;
 use core\persistent;
-use DateTimeImmutable;
-use moodle_database;
 
 class queue_item extends persistent {
 
@@ -47,11 +45,11 @@ class queue_item extends persistent {
             ],
             'itemkey' => [
                 'null' => NULL_NOT_ALLOWED,
-                'type' => PARAM_ALPHANUMEXT,
+                'type' => PARAM_TEXT,
             ],
             'queue' => [
                 'null' => NULL_NOT_ALLOWED,
-                'type' => PARAM_ALPHANUMEXT,
+                'type' => PARAM_TEXT,
             ],
             'timecreated' => [
                 'default' => 0,
