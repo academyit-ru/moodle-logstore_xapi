@@ -47,7 +47,6 @@ class queue_item_completed extends \core\event\base {
         $event = self::create([
             'context' => \context_system::instance(),
             'objectid' => $qitem->get('id'),
-            'objecttable' => queue_item::TABLE,
             'other' => [
                 'logrecordid' => $qitem->get('logrecordid'),
                 'queue' => $qitem->get('queue'),
@@ -68,6 +67,7 @@ class queue_item_completed extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'u';
         $this->data['edulevel'] = self::LEVEL_OTHER;
+        $this->data['objecttable'] = queue_item::TABLE;
     }
 
     /**

@@ -49,7 +49,6 @@ class xapi_record_registered extends \core\event\base {
         $event = self::create([
             'context' => \context_system::instance(),
             'objectid' => $xapirecord->get('id'),
-            'objecttable' => xapi_record::TABLE,
             'other' => [
                 'lrs_uuid' => $xapirecord->get('logrecordid'),
                 'eventid' => $xapirecord->get('eventid'),
@@ -70,6 +69,7 @@ class xapi_record_registered extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
+        $this->data['objecttable'] = xapi_record::TABLE;
     }
 
     /**
