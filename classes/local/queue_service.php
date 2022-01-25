@@ -183,7 +183,7 @@ class queue_service {
         }
         $queueitems = array_map(
             function(queue_item $qi) {
-                if (false === $qi->is_banned()) {
+                if (false === $qi->get('isbanned')) {
                     $qi->mark_as_complete()
                        ->increase_attempt_number();
                 }
