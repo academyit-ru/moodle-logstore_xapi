@@ -76,4 +76,37 @@ if ($hassiteconfig) {
     $settings->add(new admin_setting_configmulticheckbox('logstore_xapi/routes',
         get_string('routes', 'logstore_xapi'), '', $menuroutes, $menuroutes));
 
+    $settings->add(new admin_setting_heading('logstore_xapi/learning_artefacts',
+        get_string('learning_artefacts_heading', 'logstore_xapi'),
+        get_string('learning_artefacts_heading_help', 'logstore_xapi'))
+    );
+
+    $settings->add(new admin_setting_configtext(
+        'logstore_xapi/s3_endpoint',
+        get_string('s3_endpoint_setting', 'logstore_xapi'),
+        get_string('s3_endpoint_setting_desc', 'logstore_xapi'),
+        '', // $default
+        PARAM_URL // $paramtype
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'logstore_xapi/s3_bucket',
+        get_string('s3_bucket_setting', 'logstore_xapi'),
+        get_string('s3_bucket_setting_desc', 'logstore_xapi'),
+        '', // $default
+        PARAM_TEXT // $paramtype
+    ));
+
+    $settings->add(new admin_setting_configpasswordunmask(
+        'logstore_xapi/u2035_aws_key',
+        get_string('u2035_aws_key_setting', 'logstore_xapi'),
+        get_string('u2035_aws_key_setting_desc', 'logstore_xapi'),
+        ''
+    ));
+    $settings->add(new admin_setting_configpasswordunmask(
+        'logstore_xapi/u2035_aws_secret',
+        get_string('u2035_aws_secrety_setting', 'logstore_xapi'),
+        get_string('u2035_aws_secrety_setting_desc', 'logstore_xapi'),
+        ''
+    ));
 }
