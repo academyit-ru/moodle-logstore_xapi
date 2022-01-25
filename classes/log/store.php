@@ -80,7 +80,7 @@ class store implements log_writer {
 
     /**
      * Insert events in bulk to the database. Overrides helper_writer.
-     * @param stdClass[] $events raw event data
+     * @param \stdClass[] $events raw event data
      *
      * @return void
      */

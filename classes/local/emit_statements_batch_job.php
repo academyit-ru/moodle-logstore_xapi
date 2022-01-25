@@ -195,9 +195,9 @@ class emit_statements_batch_job extends base_batch_job {
      * @return log_event[]
      */
     protected function filter_failed_statements(array $loadedevents) {
-        $filtered = array_filter($loadedevents, fn($event) => $event['loaded'] === false);
+        $filtered = array_filter($loadedevents, function($event) {return $event['loaded'] === false;});
 
-        return array_map(fn($ev) => new log_event($ev['event']), $filtered);
+        return array_map(function($ev) {return new log_event($ev['event']);}, $filtered);
     }
 
     /**
@@ -208,9 +208,9 @@ class emit_statements_batch_job extends base_batch_job {
      * @return log_event[]
      */
     protected function filter_registered_staetments(array $loadedevents) {
-        $filtered = array_filter($loadedevents, fn($event) => $event['loaded'] === true);
+        $filtered = array_filter($loadedevents, function($event) {$event['loaded'] === true;});
 
-        return array_map(fn($ev) => new log_event($ev['event']), $filtered);
+        return array_map(function($ev) {return new log_event($ev['event']);}, $filtered);
     }
 
     /**

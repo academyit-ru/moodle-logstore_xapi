@@ -72,13 +72,13 @@ abstract class base_batch_job {
 
         if ([] === $this->events) {
             $ids = array_map(
-                fn (queue_item $qi) => $qi->get('logrecordid'),
+                function(queue_item $qi) {return $qi->get('logrecordid');},
                 $this->queueitems
             );
             list($insql, $params) = $this->db->get_in_or_equal($ids, SQL_PARAMS_NAMED, 'id');
 
             $records = $this->db->get_records_select('logstore_xapi_log', 'id ' . $insql, $params);
-            $this->events = array_map(fn($record) => new log_event($record), $records);
+            $this->events = array_map(function($record) {return new log_event($record);}, $records);
         }
 
         return $this->events;

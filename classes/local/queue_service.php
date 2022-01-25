@@ -91,7 +91,7 @@ class queue_service {
 
         // Помечаем их - "В обработке"
         list($insql, $inparams) = $this->db->get_in_or_equal(
-            array_map(fn(queue_item $r) => $r->get('id'), $items)
+            array_map(function(queue_item $r) {return $r->get('id');}, $items)
         );
         $insql = 'id ' . $insql;
         $inparams = $inparams;
@@ -103,7 +103,7 @@ class queue_service {
 
         // Извлекаем обновлённые данные для записей
         $runningrecords = $this->db->get_records_select(queue_item::TABLE, $insql, $inparams, $sort);
-        return array_map(fn($r) => new queue_item(0, $r), $runningrecords);
+        return array_map(function($r) {return new queue_item(0, $r);}, $runningrecords);
     }
 
     /**
@@ -150,7 +150,7 @@ class queue_service {
         }
 
         list($insql, $inparams) = $this->db->get_in_or_equal(
-            array_map(fn(queue_item $r) => $r->get('id'), $queueitems)
+            array_map(function(queue_item $r) {return $r->get('id');}, $queueitems)
         );
         $insql = 'id ' . $insql;
         $inparams = $inparams;

@@ -78,7 +78,7 @@ SQL;
         }
         $records = $DB->get_records_sql($sql, [], 0, $limitnum);
 
-        return array_map(fn($r) => new log_event($r), $records);
+        return array_map(function($r) {return new log_event($r);}, $records);
     }
 
     /**
