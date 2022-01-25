@@ -184,7 +184,7 @@ class queue_item extends persistent {
      *
      * @return bool
      */
-    public function is_banned() {
+    protected function get_isbanned() {
         return (bool) $this->raw_get('isbanned');
     }
 }
