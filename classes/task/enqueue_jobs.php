@@ -45,8 +45,15 @@ class enqueue_jobs extends \core\task\scheduled_task {
     public function execute() {
 
         $queueservice = queue_service::instance();
+        mtrace('Getting log events to handle...');
         $events = $this->find_unhandled_events();
+        mtrace(sprintf('-- Found %d events', count($events)));
+        if ([] === $events) {
+            mtrace(sprintf('-- No events found. Stopping execution.'));
+            return;
+        }
 
+        mtrace('Sorting events into queues...');
         $eventsqueues = $this->map_queues($events);
 
         foreach ($eventsqueues as $tuple) {
@@ -73,10 +80,11 @@ class enqueue_jobs extends \core\task\scheduled_task {
             AND q.id IS NULL
 SQL;
         $limitnum = get_config('logstore_xapi', 'enqueue_jobs_batchlimit');
-        if (false === $limitnum) {
+        if (! $limitnum) {
             $limitnum = static::ENQUEUE_JOB_BATCHLIMIT;
         }
         $records = $DB->get_records_sql($sql, [], 0, $limitnum);
+        debugging(sprintf('%s::%s(): Naideno %d zapisey', __CLASS__, __METHOD__, count($records)), DEBUG_DEVELOPER);
 
         return array_map(function($r) {return new log_event($r);}, $records);
     }
