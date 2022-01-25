@@ -91,15 +91,24 @@ class log_event implements ArrayAccess {
      * @return mixed
      */
     public function __get($name) {
-        $result = $this->record->$name ?? null;
-        if (!$result) {
+        if (false === isset($this->record->$name)) {
+            debugging(
+                sprintf(
+                    '%s: неизвестное свойство записи %s, debug: %s, trace: %s',
+                    static::class,
+                    $name,
+                    json_encode(['name' => $name, 'record' => $this->record]),
+                    (new \Exception())->getTraceAsString()
+                ),
+                DEBUG_DEVELOPER
+            );
             throw new coding_exception(
                 static::class . ': неизвестное свойство записи ' . $name,
                 json_encode(['name' => $name, 'record' => $this->record])
             );
         }
 
-        return $result;
+        return $this->record->$name;
     }
 
     public function offsetExists($offset): bool {
