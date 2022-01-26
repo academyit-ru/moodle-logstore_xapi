@@ -85,7 +85,9 @@ SQL;
             $limitnum = static::ENQUEUE_JOB_BATCHLIMIT;
         }
         $records = $DB->get_records_sql($sql, [], 0, $limitnum);
-        debugging(sprintf('%s::%s(): Naideno %d zapisey', __CLASS__, __METHOD__, count($records)), DEBUG_DEVELOPER);
+        if (debugging() && !PHPUNIT_TEST) {
+            debugging(sprintf('[LOGSTORE_XAPI][DEBUG]: Naideno zapisey: %d ', count($records)), DEBUG_DEVELOPER);
+        }
 
         return array_map(function($r) {return new log_event($r);}, $records);
     }
