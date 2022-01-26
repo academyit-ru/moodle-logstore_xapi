@@ -132,10 +132,13 @@ class emit_statements_batch_job extends base_batch_job {
                 'lrs_max_batch_size' => count($this->queueitems),
             ],
         ];
-        $loadedevents = \src\handler($handlerconfig, $this->get_events());
 
+        mtrace('Start handling log events...');
+        $loadedevents = \src\handler($handlerconfig, $this->get_events());
         $failed = $this->filter_failed_statements($loadedevents);
         $registered = $this->filter_registered_staetments($loadedevents);
+        mtrace('-- Failed events ' . count($failed));
+        mtrace('-- Registered events ' . count($registered));
 
         $errortuples = $this->map_queueitems_with_loadedevent($failed);
         $this->resulterror = array_map(function($tuple) {
