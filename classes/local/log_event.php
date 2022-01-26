@@ -52,6 +52,8 @@ use coding_exception;
  */
 class log_event implements ArrayAccess {
 
+    const TABLE = 'logstore_xapi_log';
+
     /**
      * @var \stdClass
      */
@@ -133,5 +135,48 @@ class log_event implements ArrayAccess {
      */
     public function to_record() {
         return $this->record;
+    }
+
+    /**
+     * Load a list of records.
+     *
+     * @param array $filters Filters to apply.
+     * @param string $sort Field to sort by.
+     * @param string $order Sort order.
+     * @param int $skip Limitstart.
+     * @param int $limit Number of rows to return.
+     *
+     * @return \logstore_xapi\local\log_event[]
+     */
+    public static function get_records($filters = array(), $sort = '', $order = 'ASC', $skip = 0, $limit = 0) {
+        global $DB;
+
+        $orderby = '';
+        if (!empty($sort)) {
+            $orderby = $sort . ' ' . $order;
+        }
+
+        $records = $DB->get_records(static::TABLE, $filters, $orderby, '*', $skip, $limit);
+        $instances = array();
+
+        foreach ($records as $record) {
+            $newrecord = new static(0, $record);
+            array_push($instances, $newrecord);
+        }
+
+        return $instances;
+    }
+
+    /**
+     * Count a list of records.
+     *
+     * @param array $conditions An array of conditions.
+     * @return int
+     */
+    public static function count_records(array $conditions = array()) {
+        global $DB;
+
+        $count = $DB->count_records(static::TABLE, $conditions);
+        return $count;
     }
 }
