@@ -50,7 +50,7 @@ class xapi_record_registered extends \core\event\base {
             'context' => \context_system::instance(),
             'objectid' => $xapirecord->get('id'),
             'other' => [
-                'lrs_uuid' => $xapirecord->get('logrecordid'),
+                'lrs_uuid' => $xapirecord->get('lrs_uuid'),
                 'eventid' => $xapirecord->get('eventid'),
                 'timeregistered' => $xapirecord->get('timeregistered'),
             ]
