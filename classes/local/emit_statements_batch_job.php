@@ -144,7 +144,7 @@ class emit_statements_batch_job extends base_batch_job {
         $this->resulterror = array_map(function($tuple) {
             /** @var queue_item $qitem */
             list($qitem, $loadedevent) = $tuple;
-            $errormsg = $loadedevent['error'] ?? '!!! EMPTY ERROR MESSAGE !!!';
+            $errormsg = $loadedevent['error'] ?? '';
             $qitem->set('lasterror', $errormsg);
 
             return $qitem;

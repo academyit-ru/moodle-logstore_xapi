@@ -38,7 +38,7 @@ use Throwable;
 
 class queue_service {
 
-    const DEFAULT_ATTEMPTS_LIMIT = 3;
+    const DEFAULT_ATTEMPTS_LIMIT = 12;
     const QUEUE_EMIT_STATEMENTS = 'EMIT_STATEMENTS';
     const QUEUE_PUBLISH_ATTACHMENTS = 'PUBLISH_ATTACHMENTS';
 

@@ -39,7 +39,7 @@ function construct_loaded_events(array $transformedevents, $loaded, $response = 
         if (true === $loaded) {
             $uuid = _extract_uuid($response, $offset);
         } else {
-            $error = _extract_error($response, $offset);
+            $error = $response['error'];
         }
         return [
             'event' => $transformedevent['event'],
@@ -62,19 +62,4 @@ function _extract_uuid($response, $statementoffset) {
     $uuid = $responseResult[$statementoffset] ?? null;
 
     return $uuid;
-}
-
-function _extract_error($response, $statementoffset) {
-    $responseError = $response['error'];
-    if (false === is_array($responseError)) {
-        $responseError = json_decode($responseError);
-    }
-    $errormsg = null;
-    $errorid = $responseError['errorId'] ?? null;
-    $warning = $responseError['warnings'][$statementoffset] ?? 'No warnings for this xAPI statement';
-    if ($errorid) {
-        $errormsg = json_encode(compact('errorid', 'warning'));
-    }
-
-    return $errormsg;
 }
