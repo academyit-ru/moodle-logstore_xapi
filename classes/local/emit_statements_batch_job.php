@@ -204,7 +204,9 @@ class emit_statements_batch_job extends base_batch_job {
      * ]
      */
     protected function filter_failed_statements(array $loadedevents) {
-        return array_filter($loadedevents, function($event) {return $event['loaded'] === false;});
+        return array_filter($loadedevents, function($event) {
+            return $event['loaded'] === false;
+        });
     }
 
     /**
@@ -222,7 +224,9 @@ class emit_statements_batch_job extends base_batch_job {
      * ]
      */
     protected function filter_registered_staetments(array $loadedevents) {
-        return array_filter($loadedevents, function($event) {$event['loaded'] === true;});
+        return array_filter($loadedevents, function($event) {
+            return $event['loaded'] === true;
+        });
     }
 
     /**
@@ -242,10 +246,10 @@ class emit_statements_batch_job extends base_batch_job {
         return array_filter(
             array_map(function ($loadedevent) use ($queueitems) {
                 $logrecord = $loadedevent['event'] ?? null;
-                if (array_key_exists($logrecord->id, $queueitems)) {
+                if (!array_key_exists($logrecord->id, $queueitems)) {
                     return false;
                 }
-                return [$queueitems[$logrecord->id], $logrecord];
+                return [$queueitems[$logrecord->id], $loadedevent];
             }, $loadedevents)
         );
     }
