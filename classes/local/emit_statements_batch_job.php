@@ -60,17 +60,22 @@ class emit_statements_batch_job extends base_batch_job {
     protected $db;
 
     /**
+     * @var string|callable
+     */
+    protected $loader;
+    /**
      *
      * @param queue_item[] $queueitems,
      * @param moodle_database $db
      */
-    public function __construct(array $queueitems, moodle_database $db) {
+    public function __construct(array $queueitems, moodle_database $db, $loader = 'moodle_curl_lrs') {
         $this->queueitems = $queueitems;
         $this->resulterror = [];
         $this->resultsuccess = [];
         $this->xapirecords = [];
         $this->events = [];
         $this->db = $db;
+        $this->loader = $loader;
     }
 
     /**
@@ -121,7 +126,7 @@ class emit_statements_batch_job extends base_batch_job {
                 'app_url' => $CFG->wwwroot,
             ],
             'loader' => [
-                'loader' => 'moodle_curl_lrs',
+                'loader' => $this->get_loader(),
                 'lrs_endpoint' => $this->get_config('endpoint', ''),
                 'lrs_token' => $this->get_config('token', ''),
                 'lrs_max_batch_size' => count($this->queueitems),
@@ -268,5 +273,21 @@ class emit_statements_batch_job extends base_batch_job {
      */
     public function get_xapi_records() {
         return $this->xapirecords;
+    }
+
+    /**
+     *
+     * @return string|callable
+     */
+    public function get_loader() {
+        return $this->loader; // = 'moodle_curl_lrs';
+    }
+
+    /**
+     * @param string|callable $loader
+     * @return self
+     */
+    public function set_loader($loader) {
+        $this->loader = $loader;
     }
 }
