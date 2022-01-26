@@ -142,27 +142,33 @@ class emit_statements_batch_job extends base_batch_job {
             return $qitem;
         }, $errortuples);
 
-        $registeredtuples  = $this->map_queueitems_with_loadedevent($registered);
-        $xapirecords = [];
-        foreach ($registeredtuples as $tuple) {
-            /** @var queue_item $qitem */
-            list($qitem, $loadedevent) = $tuple;
-            $this->resultsuccess[] = $qitem;
-            $xapirecords[] = new xapi_record(0, (object) [
-                'lrs_uuid'       => $loadedevent['uuid'],
-                'body'           => $loadedevent['statement'],
-                'eventid'        => $qitem->get('logrecordid'),
-                'timeregistered' => time()
-            ]);
-        }
+        if (0 < count($registered)) {
 
-        $this->xapirecords = array_map(
-            function (xapi_record $xapirecord) {
-                $xapirecord->save();
-                return $xapirecord;
-            },
-            $xapirecords
-        );
+            $registeredtuples = $this->map_queueitems_with_loadedevent($registered);
+
+            $xapirecords = [];
+            foreach ($registeredtuples as $tuple) {
+                /** @var queue_item $qitem */
+                list($qitem, $loadedevent) = $tuple;
+                $this->resultsuccess[] = $qitem;
+                $xapirecords[] = new xapi_record(0, (object) [
+                    'lrs_uuid'       => $loadedevent['uuid'],
+                    'body'           => json_encode($loadedevent['statements']),
+                    'eventid'        => $qitem->get('logrecordid'),
+                    'timeregistered' => time()
+                ]);
+            }
+
+            $this->xapirecords = array_map(
+                function (xapi_record $xapirecord) {
+                    $xapirecord->save();
+                    return $xapirecord;
+                },
+                $xapirecords
+            );
+
+            mtrace('---- xapi_records created ' . count($this->xapirecords));
+        }
     }
 
     /**
