@@ -32,7 +32,7 @@ use Aws\Credentials\Credentials as AwsCredentials;
 use DateTimeImmutable;
 use coding_exception;
 
-class u2035_s3client {
+class u2035_s3client implements s3client_interface {
 
     const AWS_API_VERSION = '2006-03-01';
     const AWS_API_REGION = 'eu-central-1';

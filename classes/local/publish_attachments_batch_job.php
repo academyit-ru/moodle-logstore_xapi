@@ -68,16 +68,21 @@ class publish_attachments_batch_job extends base_batch_job {
     protected $db;
 
     /**
+     * @var s3client_interface
+     */
+    protected $s3client;
+    /**
      * @param queue_item[] $queueitems
      * @param moodle_database $db
      */
-    public function __construct(array $queueitems, moodle_database $db) {
+    public function __construct(array $queueitems, moodle_database $db, s3client_interface $s3client) {
         $this->queueitems = $queueitems;
         $this->events = [];
         $this->resulterror = [];
         $this->resultsuccess = [];
         $this->xapiattachmentsrecords = [];
         $this->db = $db;
+        $this->s3client = $s3client;
     }
 
     /**
@@ -131,7 +136,7 @@ class publish_attachments_batch_job extends base_batch_job {
 
                 /// 2. Загрузка созданного архива в S3 ///
                 try {
-                    $uploadresult = $s3client->upload($attachmentname, $handle);
+                    $uploadresult = $this->s3client->upload($attachmentname, $handle);
                 } catch (S3Exception $e) {
                     fclose($handle);
                     $errormsg = sprintf(
@@ -187,14 +192,6 @@ class publish_attachments_batch_job extends base_batch_job {
                 continue;
             }
         }
-    }
-
-    /**
-     *
-     * @return u2035_s3client
-     */
-    protected function build_s3client() {
-        return u2035_s3client::build();
     }
 
     /**
