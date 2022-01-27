@@ -26,6 +26,7 @@ namespace logstore_xapi\task;
 
 use logstore_xapi\local\publish_attachments_batch_job;
 use logstore_xapi\local\queue_service;
+use logstore_xapi\local\u2035_s3client;
 
 class publish_attachment extends \core\task\scheduled_task {
 
@@ -50,7 +51,8 @@ class publish_attachment extends \core\task\scheduled_task {
         }
         $queueservice = queue_service::instance();
         $records = $queueservice->pop($batchsize, queue_service::QUEUE_PUBLISH_ATTACHMENTS);
-        $batchjob = new publish_attachments_batch_job($records, $DB);
+        $s3client = u2035_s3client::build();
+        $batchjob = new publish_attachments_batch_job($records, $DB, $s3client);
         $batchjob->run();
         $queueservice->complete($batchjob->result_success());
         $queueservice->requeue($batchjob->result_error());
