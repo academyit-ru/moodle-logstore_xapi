@@ -27,7 +27,7 @@ namespace logstore_xapi\event;
 use logstore_xapi\local\persistent\queue_item;
 
 /**
- * Event класс события queue_item_completed.
+ * Event класс события queue_item_banned.
  *
  * @property-read array $other {
  *      Extra information about the event.
