@@ -97,7 +97,7 @@ function assignment_graded(array $config, log_event $event) {
         ],
     ]];
     if ([] !== $attachments) {
-        $result['attachments'] = $attachments;
+        $result[0]['attachments'] = $attachments;
     }
 
     return $result;

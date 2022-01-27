@@ -29,13 +29,13 @@ function attachments(array $config, $event) {
     $result = [];
     foreach ($attachments as $attachment) {
         $result[] = [
-            'fileUrl' => $attachment->s3_url,
+            'fileUrl' => $attachment->get('s3_url'),
             'display' => [
-                'ru-RU' => $attachment->s3_filename
+                'ru-RU' => $attachment->get('s3_filename')
             ],
-            'contentType' => $attachment->s3_contenttype,
-            'length' => $attachment->s3_filesize,
-            'sha2' => $attachment->s3_sha2,
+            'contentType' => $attachment->get('s3_contenttype'),
+            'length' => $attachment->get('s3_filesize'),
+            'sha2' => $attachment->get('s3_sha2'),
             'usageType' => USAGE_TYPE
         ];
     }
