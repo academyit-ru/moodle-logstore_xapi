@@ -111,38 +111,33 @@ class queue_service {
     }
 
     /**
-     * @param log_event[]|log_event $events
+     * @param log_event $events
      * @param string                $queuename
      * @param array                 $payload
+     *
+     * @return queue_item
      */
-    public function push($events, string $queuename, $payload = []) {
+    public function push(log_event $event, string $queuename, $payload = []) {
         $this->validate_queuename($queuename);
-        if (false === is_array($events)) {
-            $events = [$events];
-        }
-        $qitems = array_map(function (log_event $event) use ($queuename, $payload) {
-            return new queue_item(0, (object) [
-                'logrecordid' => $event->id,
-                'itemkey' => $this->make_item_key($event, $queuename),
-                'queue' => $queuename,
-                'payload' => json_encode($payload),
-            ]);
-        }, $events);
 
-        /** @var queue_item $qitem */
-        foreach ($qitems as $qitem) {
-            try {
-                $qitem->save();
-            } catch (moodle_exception $e) {
-                error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s DEBUGINFO: %s', $e->getMessage(), $e->debuginfo));
-                debugging(sprintf('[LOGSTORE_XAPI][ERROR] %s DEBUGINFO: %s', $e->getMessage(), $e->debuginfo), DEBUG_DEVELOPER);
-            } catch (Throwable $e) {
-                error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()));
-                debugging(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()), DEBUG_DEVELOPER);
-            }
+        $qitem = new queue_item(0, (object) [
+            'logrecordid' => $event->id,
+            'itemkey' => $this->make_item_key($event, $queuename),
+            'queue' => $queuename,
+            'payload' => json_encode($payload),
+        ]);
+
+        try {
+            $qitem->save();
+        } catch (moodle_exception $e) {
+            error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s DEBUGINFO: %s', $e->getMessage(), $e->debuginfo));
+            debugging(sprintf('[LOGSTORE_XAPI][ERROR] %s DEBUGINFO: %s', $e->getMessage(), $e->debuginfo), DEBUG_DEVELOPER);
+        } catch (Throwable $e) {
+            error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()));
+            debugging(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()), DEBUG_DEVELOPER);
         }
 
-        return $qitems;
+        return $qitem;
     }
 
     /**
