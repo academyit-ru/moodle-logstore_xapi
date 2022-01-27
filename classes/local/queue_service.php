@@ -152,21 +152,34 @@ class queue_service {
             return;
         }
 
-        list($insql, $inparams) = $this->db->get_in_or_equal(
-            array_map(function(queue_item $r) {return $r->get('id');}, $queueitems)
-        );
+        $toremove = [];
+        $toban = [];
+        /** @var queue_item $qitem */
+        foreach ($queueitems as $qitem) {
+            if ($qitem->get('isbanned')) {
+                $toban[] = $qitem;
+            } else {
+                $toremove[$qitem->get('id')] = $qitem;
+            }
+        }
+        list($insql, $inparams) = $this->db->get_in_or_equal(array_keys($toremove));
         $insql = 'id ' . $insql;
         $inparams = $inparams;
-
-        $this->db->set_field_select(queue_item::TABLE, 'isrunning', false, $insql, $inparams);
-        $this->db->set_field_select(queue_item::TABLE, 'timecompleted', time(), $insql, $inparams);
-        $this->db->set_field_select(queue_item::TABLE, 'timemodified', time(), $insql, $inparams);
-        $this->db->set_field_select(queue_item::TABLE, 'usermodified', $USER->id, $insql, $inparams);
-
-        array_walk($queueitems, function (queue_item $qi) {
+        $this->db->delete_records_select(queue_item::TABLE, $insql, $inparams);
+        array_walk($toremove, function (queue_item $qi) {
             $event = queue_item_completed::create_from_record($qi);
             $event->trigger();
         });
+
+        /** @var queue_item $qitem */
+        foreach($toban as $qitem) {
+            $qitem
+                ->increase_attempt_number()
+                ->mark_as_complete()
+                ->save();
+            $event = queue_item_banned::create_from_record($qitem);
+            $event->trigger();
+        }
     }
 
     /**
