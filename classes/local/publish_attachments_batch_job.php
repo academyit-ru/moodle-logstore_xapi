@@ -103,15 +103,10 @@ class publish_attachments_batch_job extends base_batch_job {
      * @inheritdoc
      */
     public function run() {
-        $s3client = $this->build_s3client();
-        $qitemsbylogid = array_combine(
-            array_column($this->queueitems, 'logrecordid'), $this->queueitems
-        );
+        $logevents = $this->get_events();
+        foreach ($this->queueitems as $qitem) {
 
-        /** @var log_event $logevent */
-        foreach ($this->get_events() as $logevent) {
-
-            $qitem = $qitemsbylogid[$logevent->id];
+            $logevent = $logevents[$qitem->get('logrecordid')];
             try {
                 /// 1. Подготовка архива с артефактами к отправке в S3 ///
                 $attachmentname = $this->get_attachment_filename($logevent);
@@ -172,6 +167,7 @@ class publish_attachments_batch_job extends base_batch_job {
                 // Сохраняем ошибку возникшую на одном из этапов и переходим к следующему событию в очереди
                 $qitem->set('lasterror', $e->getMessage());
                 $this->resulterror[] = $qitem;
+                mtrace(sprintf('---- Exception thrown wile handling queue item id:%d Error: %s', $qitem->get('id'), $e->getMessage()));
                 continue;
             }
 
