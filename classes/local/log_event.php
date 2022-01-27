@@ -27,6 +27,8 @@ namespace logstore_xapi\local;
 
 use ArrayAccess;
 use coding_exception;
+use moodle_database;
+
 /**
  * @property-read int    $id
  * @property-read string $eventname
@@ -135,6 +137,20 @@ class log_event implements ArrayAccess {
      */
     public function to_record() {
         return $this->record;
+    }
+
+    /**
+     * Load a single record.
+     *
+     * @param array $filters Filters to apply.
+     * @return false|self
+     */
+    public static function get_record($filters = []) {
+        /** @var moodle_database $DB */
+        global $DB;
+
+        $record = $DB->get_record(static::TABLE, $filters);
+        return $record ? new static($record) : false;
     }
 
     /**
