@@ -107,6 +107,9 @@ class emit_statements_batch_job_testcase extends advanced_testcase {
         $this->assertEquals(log_event::count_records(), xapi_record::count_records());
         $this->assertEquals(0, xapi_record::count_records(['lrs_uuid' => NULL]));
         $this->assertEquals(0, xapi_record::count_records_select('body IS NULL'));
+
+        $this->assertCount(3, $job->result_success());
+        $this->assertCount(0, $job->result_error());
     }
 
     /**
@@ -122,28 +125,6 @@ class emit_statements_batch_job_testcase extends advanced_testcase {
         $submission = $assign->get_user_submission($student->id, true);
         $coursecontext = context_course::instance($course->id);
         $logevents = [
-            // [
-            //     "eventname" => '\mod_assign\event\submission_graded',
-            //     "component" => 'mod_assign',
-            //     "action" => 'graded',
-            //     "target" => 'submission',
-            //     "objecttable" => 'assign_grades',
-            //     "objectid" => '1',
-            //     "crud" => 'u',
-            //     "edulevel" => 1,
-            //     "contextid" => $assign->get_context()->id,
-            //     "contextlevel" => 70,
-            //     "contextinstanceid" => $assign->get_instance()->id,
-            //     "userid" => $teacher->id,
-            //     "courseid" => $course->id,
-            //     "relateduserid" => $student->id,
-            //     "anonymous" => "0",
-            //     "other" => 'N;',
-            //     "timecreated" => 1643120576,
-            //     "origin" => 'web',
-            //     "ip" => '127.0.0.1',
-            //     "realuserid" => null,
-            // ],
             [
                 "eventname" => '\core\event\course_viewed',
                 "component" => 'core',
@@ -210,28 +191,6 @@ class emit_statements_batch_job_testcase extends advanced_testcase {
                 "ip" => '127.0.0.1',
                 "realuserid" => null,
             ],
-            // [
-            //     "eventname" => '\mod_assign\event\grading_form_viewed',
-            //     "component" => 'mod_assign',
-            //     "action" => 'viewed',
-            //     "target" => 'grading_form',
-            //     "objecttable" => null,
-            //     "objectid" => null,
-            //     "crud" => 'r',
-            //     "edulevel" => 1,
-            //     "contextid" => $assign->get_context()->id,
-            //     "contextlevel" => 70,
-            //     "contextinstanceid" => $assign->get_instance()->id,
-            //     "userid" => $teacher->id,
-            //     "courseid" => $course->id,
-            //     "relateduserid" => $student->id,
-            //     "anonymous" => "0",
-            //     "other" => serialize(['assignid' => $assign->get_instance()->id]),
-            //     "timecreated" => 1643120576,
-            //     "origin" => 'web',
-            //     "ip" => '127.0.0.1',
-            //     "realuserid" => null,
-            // ]
         ];
 
         $DB->insert_records('logstore_xapi_log', $logevents);
