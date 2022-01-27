@@ -40,7 +40,7 @@ use logstore_xapi\local\persistent\queue_item;
 class queue_item_completed extends \core\event\base {
 
     /**
-     * @param queue_item $qitem
+     * @param queue_item $qitem Запись уже удалена из БД
      * @return self
      */
     public static function create_from_record(queue_item $qitem) {
@@ -50,11 +50,10 @@ class queue_item_completed extends \core\event\base {
             'other' => [
                 'logrecordid' => $qitem->get('logrecordid'),
                 'queue' => $qitem->get('queue'),
-                'timecompleted' => $qitem->get('timecompleted')
+                'timecompleted' => $qitem->get('timecompleted'),
+                'payload' => $qitem->get('payload')
             ]
         ]);
-
-        $event->add_record_snapshot(queue_item::TABLE, $qitem->to_record());
 
         return $event;
     }
