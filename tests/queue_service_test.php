@@ -26,6 +26,7 @@ namespace logstore_xapi;
 
 use advanced_testcase;
 use logstore_xapi\event\queue_item_banned;
+use logstore_xapi\event\queue_item_completed;
 use logstore_xapi\event\queue_item_requeued;
 use logstore_xapi\local\log_event;
 use logstore_xapi\local\persistent\queue_item;
@@ -100,12 +101,53 @@ class queue_service_testcase extends advanced_testcase {
     }
 
     /**
-     * TODO: write docbloc
-     *
-     *
+     * Дано:
+     *      - В таблице logstore_xapi_queue есть несколько записей
+     *      - Они были помечены "на обработке"
+     * Выполнить:
+     *      - $qservice->requeue($qitems)
+     * Результат:
+     *      - Удалённы записи которые были успшно заквершены
+     *      - Записи которые были забанены были сохранены
      */
     public function test_complete_items() {
-        # code ...
+        /** @var moodle_database $DB */
+        global $DB;
+        $this->resetAfterTest();
+
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        $datasetbasepath = dirname(__FILE__) . '/fixtures/dataset3';
+        $tablename = queue_item::TABLE;
+        $dataset = $this->createCsvDataSet([$tablename => "{$datasetbasepath}/{$tablename}.csv"]);
+        $this->loadDataSet($dataset);
+
+        $this->assertEquals(2, queue_item::count_records(['isrunning' => true]));
+        $this->assertEquals(2, queue_item::count_records(['isrunning' => true]));
+        $this->assertEquals(4, queue_item::count_records());
+
+        $qitems = queue_item::get_records(['isrunning' => true]);
+        $bannedqitem = reset($qitems);
+        $bannedqitem->set('isbanned', true);
+        $bannedqitem->set('lasterror', 'FOO BAR BAZ');
+
+
+        $sink = $this->redirectEvents();
+
+        $qservice = queue_service::instance();
+        $qservice->complete($qitems);
+
+        $events = $sink->get_events();
+        $this->assertCount(2, $events);
+        $event = array_shift($events);
+        $this->assertInstanceOf(queue_item_completed::class, $event);
+        $event = array_shift($events);
+        $this->assertInstanceOf(queue_item_banned::class, $event);
+
+        $this->assertEquals(3, queue_item::count_records());
+        $this->assertEquals(0, queue_item::count_records(['isrunning' => true]));
+        $this->assertEquals(3, queue_item::count_records(['isbanned' => true]));
     }
 
     /**
