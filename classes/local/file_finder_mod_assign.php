@@ -65,11 +65,22 @@ class file_finder_mod_assign extends file_finder {
                     debugging("Для задания {$assignid} не включены ответы в виде файлов", DEBUG_DEVELOPER);
                     break;
                 }
+
+                $conditions = [
+                    'assignment' => $assignid,
+                    'userid' => $logevent->relateduserid,
+                    'groupid' => 0
+                ];
+                $submission = null;
+                $records = $this->db->get_records('assign_submission', $conditions, 'attemptnumber DESC', '*', 0, 1);
+                if ($records) {
+                    $submission = reset($records);
+                }
                 return $this->fs->get_area_files(
                     $logevent->contextid,
                     'assignsubmission_file',        // $component
                     ASSIGNSUBMISSION_FILE_FILEAREA, // $filearea
-                    $submissionid,
+                    $submission->id,
                     "id",                           // $sort
                     false                           // $includedirs
                 );
