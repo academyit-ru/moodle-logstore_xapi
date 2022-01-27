@@ -53,7 +53,6 @@ class attachment_published extends \core\event\base {
         $event = self::create([
             'context' => \context_system::instance(),
             'objectid' => $record->get('id'),
-            'objecttable' => xapi_attachment::TABLE,
             'other' => [
                 'logrecordid' => $record->get('eventid'),
                 's3_url' => $record->get('s3_url'),
@@ -77,6 +76,7 @@ class attachment_published extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
+        $this->data['objecttable'] = xapi_attachment::TABLE;
     }
 
     /**
