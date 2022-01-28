@@ -18,9 +18,10 @@ namespace src\transformer\events\mod_feedback\item_answered;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 
-function multichoicerated(array $config, \stdClass $event, \stdClass $feedbackvalue, \stdClass $feedbackitem) {
+function multichoicerated(array $config, log_event $event, \stdClass $feedbackvalue, \stdClass $feedbackitem) {
     $repo = $config['repo'];
     $user = $repo->read_record_by_id('user', $event->userid);
     $course = $repo->read_record_by_id('course', $event->courseid);

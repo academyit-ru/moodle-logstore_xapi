@@ -25,13 +25,13 @@ use \tool_log\helper\store as helper_store;
 use \tool_log\helper\reader as helper_reader;
 use \tool_log\helper\buffered_writer as helper_writer;
 use \core\event\base as event_base;
-use \stdClass as php_obj;
+use moodle_database;
 
 /**
  * This class processes events and enables them to be sent to a logstore.
  *
  */
-class store extends php_obj implements log_writer {
+class store implements log_writer {
     use helper_store;
     use helper_reader;
     use helper_writer;
@@ -75,12 +75,11 @@ class store extends php_obj implements log_writer {
         if (true === $extradebugxapistore) {
             error_log(sprintf('[%s][DEBUG]: Checking course %d', __CLASS__, $event->courseid));
         }
+
         $courses = explode(',', get_config('logstore_xapi', 'courses'));
-        if (false === in_array($event->courseid, $courses)) {
-            if (true === $extradebugxapistore) {
-                error_log(sprintf('[%s][DEBUG]: Course not enabled %d', __CLASS__, $event->courseid));
-            }
-            return true;
+        $coursenotregistered = !in_array($event->courseid, $courses);
+        if ($coursenotregistered) {
+            return $coursenotregistered;
         }
 
         // Так как xapi используется только для интеграции с УНТИ то учитываем только их учётки
@@ -88,34 +87,29 @@ class store extends php_obj implements log_writer {
             error_log(sprintf('[%s][DEBUG]: Checking user or relateduser are from UNTI userid: %d relateduserid: %d', __CLASS__, $event->userid, $event->relateduserid));
         }
         $userids = $DB->get_fieldset_select('user', 'id', 'auth = ?', ['untissooauth']);
-        $userfromunti = in_array($event->userid, $userids) || in_array($event->relateduserid, $userids);
-        if (false === $userfromunti) {
-            if (true === $extradebugxapistore) {
-                error_log(sprintf('[%s][DEBUG]: User (Related user) not from UNTI userid: %d (relateduserid: %d)', __CLASS__, $event->userid, $event->relateduserid));
-            }
-            return true;
-        }
+        $usernotfromunti = !(in_array($event->userid, $userids) || in_array($event->relateduserid, $userids));
 
-        return false;
+        return $usernotfromunti;
     }
 
     /**
      * Insert events in bulk to the database. Overrides helper_writer.
-     * @param array $events raw event data
+     * @param \stdClass[] $events raw event data
+     *
+     * @return void
      */
     protected function insert_event_entries(array $events) {
+        /** @var moodle_database $DB */
         global $DB;
 
-        // If in background mode, just save them in the database.
-        if ($this->get_config('backgroundmode', false)) {
-            $DB->insert_records('logstore_xapi_log', $events);
-        } else {
-            $this->process_events($events);
-        }
+        $DB->insert_records('logstore_xapi_log', $events);
     }
 
+    /**
+     * @return int
+     */
     public function get_max_batch_size() {
-        return $this->get_config('maxbatchsize', 100);
+        return (int) $this->get_config('maxbatchsize', 100);
     }
 
     public function process_events(array $events) {

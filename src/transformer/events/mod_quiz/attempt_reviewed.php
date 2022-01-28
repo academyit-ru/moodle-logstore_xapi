@@ -18,9 +18,10 @@ namespace src\transformer\events\mod_quiz;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 
-function attempt_reviewed(array $config, \stdClass $event) {
+function attempt_reviewed(array $config, log_event $event) {
     $repo = $config['repo'];
     $learner = $repo->read_record_by_id('user', $event->relateduserid);
     $instructor = $repo->read_record_by_id('user', $event->userid);

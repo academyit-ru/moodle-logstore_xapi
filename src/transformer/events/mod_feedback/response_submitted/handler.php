@@ -18,10 +18,11 @@ namespace src\transformer\events\mod_feedback\response_submitted;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 use src\transformer\events\mod_feedback\item_answered as item_answered;
 
-function handler(array $config, \stdClass $event) {
+function handler(array $config, log_event $event) {
     $repo = $config['repo'];
     $feedbackvalues = $repo->read_records('feedback_value', [
         'completed' => $event->objectid

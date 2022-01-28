@@ -18,9 +18,10 @@ namespace src\transformer\events\mod_assign;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 
-function assignment_graded(array $config, \stdClass $event) {
+function assignment_graded(array $config, log_event $event) {
     $repo = $config['repo'];
     $grade = $repo->read_record_by_id($event->objecttable, $event->objectid);
     $user = $repo->read_record_by_id('user', $grade->userid);
@@ -53,13 +54,7 @@ function assignment_graded(array $config, \stdClass $event) {
         $completion = true;
     }
 
-    // Calculate scaled score as the distance from zero towards the max (or min for negative scores).
-    if ($scoreraw >= 0) {
-        $scorescaled = $scoreraw / $scoremax;
-    } else {
-        $scorescaled = $scoreraw / $scoremin;
-    }
-
+    $attachments = utils\get_activity\attachments($config, $event);
     $statement = [
         'actor' => utils\get_user($config, $user),
         'verb' => [
@@ -92,8 +87,11 @@ function assignment_graded(array $config, \stdClass $event) {
                     utils\get_activity\source($config),
                 ],
             ],
-        ]
+        ],
     ];
+    if ([] !== $attachments) {
+        $statement['attachments'] = $attachments;
+    }
 
     if (!is_null($gradecomment)) {
         $statement['result']['response'] = $gradecomment;

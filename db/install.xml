@@ -71,5 +71,68 @@
         <INDEX NAME="user-module" UNIQUE="false" FIELDS="userid, contextlevel, contextinstanceid, crud, edulevel, timecreated"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="logstore_xapi_queue" COMMENT="очередь задачь об обработке записей журнала">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="logrecordid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="id записи из logstore_xapi_log"/>
+        <FIELD NAME="itemkey" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="queue" TYPE="char" LENGTH="256" NOTNULL="true" SEQUENCE="false" COMMENT="очередь в которую помещён элемент"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timestarted" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timecompleted" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="priority" TYPE="int" LENGTH="3" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="чем ниже значение тем выше приоритет"/>
+        <FIELD NAME="attempts" TYPE="int" LENGTH="4" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="число попыток обработать задачу"/>
+        <FIELD NAME="isrunning" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="флаг обозначающий что задача в обработке"/>
+        <FIELD NAME="isbanned" TYPE="int" LENGTH="1" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="задача заблокирована"/>
+        <FIELD NAME="payload" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="полезная нагрузка в json формате"/>
+        <FIELD NAME="lasterror" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="текст ошибки при последней обработке"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="itemkey_uix" UNIQUE="true" FIELDS="itemkey"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="logstore_xapi_records" COMMENT="xAPI полученное из moodle event'а">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="lrs_uuid" TYPE="char" LENGTH="36" NOTNULL="false" SEQUENCE="false" COMMENT="uuid присвоенный в LRS"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="id записи из logstore_xapi_log"/>
+        <FIELD NAME="body" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="содержимое xAPI выражения в json формате"/>
+        <FIELD NAME="timeregistered" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="метка времени, когда выражение было зарегистрировано в LRS"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="xapi_rec_f_log" TYPE="foreign" FIELDS="eventid" REFTABLE="logstore_xapi_log" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="xapi_rec_lrs_uuid_uix" UNIQUE="true" FIELDS="lrs_uuid"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="logstore_xapi_attachments" COMMENT="Хранит информацию об артефактах обучения">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Внешний ключь для связи с logstore_xapi_log"/>
+        <FIELD NAME="s3_url" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Ссылка на артефакт в S3 хранилище"/>
+        <FIELD NAME="s3_filename" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="название архива загруженного в S3"/>
+        <FIELD NAME="s3_sha2" TYPE="char" LENGTH="256" NOTNULL="false" SEQUENCE="false" COMMENT="hash загруженного файла"/>
+        <FIELD NAME="s3_filesize" TYPE="int" LENGTH="20" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="размер файла загруженного в S3 в байтах"/>
+        <FIELD NAME="s3_contenttype" TYPE="char" LENGTH="256" NOTNULL="false" SEQUENCE="false" COMMENT="MIME тип файла загруженного в S3"/>
+        <FIELD NAME="s3_etag" TYPE="char" LENGTH="256" NOTNULL="false" SEQUENCE="false" COMMENT="etag файла из s3"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+        <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="xapi_attach_log_key" TYPE="foreign" FIELDS="eventid" REFTABLE="logstore_xapi_log" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
   </TABLES>
 </XMLDB>

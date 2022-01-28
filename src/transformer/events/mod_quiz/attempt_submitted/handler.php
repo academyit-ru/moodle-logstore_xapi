@@ -18,10 +18,11 @@ namespace src\transformer\events\mod_quiz\attempt_submitted;
 
 defined('MOODLE_INTERNAL') || die();
 
+use logstore_xapi\local\log_event;
 use src\transformer\utils as utils;
 use src\transformer\events\mod_quiz\question_answered as question_answered;
 
-function handler(array $config, \stdClass $event) {
+function handler(array $config, log_event $event) {
     $repo = $config['repo'];
     $questionattempts = $repo->read_records('question_attempts', [
         'questionusageid' => $event->objectid

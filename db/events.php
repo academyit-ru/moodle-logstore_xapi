@@ -14,9 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Event observer.
+ *
+ * @package
+ * @category  event
+ * @copyright 2013 Petr Skoda {@link http://skodak.org}
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once(__DIR__ . '/../../../config.php');
-
-$task = new \logstore_xapi\task\emit_task();
-$task->execute();
+$observers = array(
+    array(
+        'eventname' => '\logstore_xapi\event\attachment_published',
+        'callback'  => '\logstore_xapi\local\observer::attachment_published',
+        'internal'  => false, // This means that we get events only after transaction commit.
+        'priority'  => 1000,
+    ),
+);
