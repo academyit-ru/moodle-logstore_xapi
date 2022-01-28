@@ -81,6 +81,7 @@ class log_event implements ArrayAccess {
             $filefinder = file_finder::factory($this);
             return $filefinder->has_attachments($this);
         } catch (moodle_exception $e) {
+            debugging(sprintf('%s:%s Error: %s debug: %s', __CLASS__, __METHOD__, $e->getMessage(), $e->debuginfo), DEBUG_DEVELOPER);
             return false;
         }
     }
