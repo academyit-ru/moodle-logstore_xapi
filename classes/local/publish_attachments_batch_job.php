@@ -165,16 +165,17 @@ class publish_attachments_batch_job extends base_batch_job {
 
             } catch (moodle_exception $e) {
                 // Сохраняем ошибку возникшую на одном из этапов и переходим к следующему событию в очереди
-                $errmsg = sprintf('%s debug: %s', $e->getMessage(), $e->debuginfo);
+                $errmsg = sprintf('%s debug: %s trace: %s', $e->getMessage(), $e->debuginfo, $e->getTraceAsString());
                 $qitem->set('lasterror', $errmsg);
                 $this->resulterror[] = $qitem;
                 mtrace(sprintf('---- Exception thrown wile handling queue item id:%d Error: %s', $errmsg));
                 continue;
             } catch (Throwable $e) {
                 // Сохраняем ошибку возникшую на одном из этапов и переходим к следующему событию в очереди
-                $qitem->set('lasterror', $e->getMessage());
+                $qitem->set('lasterror', sprintf('%s trace: %s', $e->getMessage(), $e->getTraceAsString()));
                 $this->resulterror[] = $qitem;
                 mtrace(sprintf('---- Exception thrown wile handling queue item id:%d Error: %s', $qitem->get('id'), $e->getMessage()));
+                mtrace(sprintf('---- Exception trace: %s', $e->getTraceAsString()));
                 continue;
             }
 
