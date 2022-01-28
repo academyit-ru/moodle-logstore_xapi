@@ -30,6 +30,8 @@ use logstore_xapi\local\u2035_s3client;
 use moodle_exception;
 use Throwable;
 
+require_once dirname(__DIR__, 2) . '/locallib.php';
+
 class publish_attachment extends \core\task\scheduled_task {
 
     const DEFAULT_BATCH_SIZE = 1000;
