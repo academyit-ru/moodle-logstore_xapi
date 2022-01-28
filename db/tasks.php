@@ -18,13 +18,22 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = [
     [
+        // Для начала запускать будем в ручную если понадобится
         'classname' => '\logstore_xapi\task\enqueue_jobs',
-        'blocking' => 0,
-        'minute' => '*/1',
-        'hour' => '*',
-        'day' => '*',
-        'dayofweek' => '*',
-        'month' => '*'
+        'blocking' => 1,
+        'minute' => '0',
+        'hour' => '1',
+        'day' => '1',
+        'dayofweek' => '1',
+        'month' => '1'
+        // TODO: После 2022-01-28 вернуть прежний вариант
+        // 'classname' => '\logstore_xapi\task\enqueue_jobs',
+        // 'blocking' => 1,
+        // 'minute' => '*/1',
+        // 'hour' => '*',
+        // 'day' => '*',
+        // 'dayofweek' => '*',
+        // 'month' => '*',
     ],
     [
         'classname' => '\logstore_xapi\task\emit_statement',

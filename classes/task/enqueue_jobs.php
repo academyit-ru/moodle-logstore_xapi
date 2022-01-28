@@ -24,6 +24,8 @@
  */
 namespace logstore_xapi\task;
 
+use core_date;
+use DateTimeImmutable;
 use logstore_xapi\local\log_event;
 use logstore_xapi\local\queue_service;
 use moodle_database;
@@ -97,12 +99,28 @@ class enqueue_jobs extends \core\task\scheduled_task {
         WHERE
             registered.id IS NULL
             AND q.id IS NULL
+            %s
 SQL;
+        $params = [];
+        $extrasql = '';
+
         $limitnum = get_config('logstore_xapi', 'enqueue_jobs_batchlimit');
         if (! $limitnum) {
             $limitnum = static::ENQUEUE_JOB_BATCHLIMIT;
         }
-        $records = $DB->get_records_sql($sql, [], 0, $limitnum);
+        $cutoffdate = get_string('logstore_xapi', 'enqueue_jobs_task_cutoffdate');
+        try {
+            $cutoffdate = new DateTimeImmutable($cutoffdate, core_date::get_server_timezone_object());
+        } catch (Throwable $e) {
+            $cutoffdate = false;
+        }
+        if ($cutoffdate) {
+            $extrasql = "AND log.timecreated > :cutoffdate";
+            $params = ['cutoffdate' => $cutoffdate->format('U')];
+            mtrace(sprintf('---- Excluding events older than %s', $cutoffdate->format('c')));
+        }
+        $sql = sprintf($sql, $extrasql);
+        $records = $DB->get_records_sql($sql, $params, 0, $limitnum);
         if (debugging() && !PHPUNIT_TEST) {
             debugging(sprintf('[LOGSTORE_XAPI][DEBUG]: Naideno zapisey: %d ', count($records)), DEBUG_DEVELOPER);
         }
