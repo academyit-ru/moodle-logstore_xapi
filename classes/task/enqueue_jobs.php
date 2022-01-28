@@ -108,7 +108,7 @@ SQL;
         if (! $limitnum) {
             $limitnum = static::ENQUEUE_JOB_BATCHLIMIT;
         }
-        $cutoffdate = get_string('logstore_xapi', 'enqueue_jobs_task_cutoffdate');
+        $cutoffdate = get_config('logstore_xapi', 'enqueue_jobs_task_cutoffdate');
         try {
             $cutoffdate = new DateTimeImmutable($cutoffdate, core_date::get_server_timezone_object());
         } catch (Throwable $e) {
