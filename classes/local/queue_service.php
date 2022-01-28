@@ -38,7 +38,7 @@ use Throwable;
 
 class queue_service {
 
-    const DEFAULT_ATTEMPTS_LIMIT = 12;
+    const DEFAULT_ATTEMPTS_LIMIT = 7;
     const QUEUE_EMIT_STATEMENTS = 'EMIT_STATEMENTS';
     const QUEUE_PUBLISH_ATTACHMENTS = 'PUBLISH_ATTACHMENTS';
 
@@ -100,14 +100,17 @@ class queue_service {
         $insql = 'id ' . $insql;
         $inparams = $inparams;
 
-        $this->db->set_field_select(queue_item::TABLE, 'isrunning', true, $insql, $inparams);
-        $this->db->set_field_select(queue_item::TABLE, 'timestarted', time(), $insql, $inparams);
-        $this->db->set_field_select(queue_item::TABLE, 'timemodified', time(), $insql, $inparams);
-        $this->db->set_field_select(queue_item::TABLE, 'usermodified', $USER->id, $insql, $inparams);
+        $newfieldvalue = [
+            'isrunning'    => true,
+            'timestarted'  => time(),
+            'timemodified' => time(),
+            'usermodified' => $USER->id,
+        ];
+        foreach($newfieldvalue as $newfield => $newvalue) {
+            $this->db->set_field_select(queue_item::TABLE, $newfield, $newvalue, $insql, $inparams);
+        }
 
-        // Извлекаем обновлённые данные для записей
-        $runningrecords = $this->db->get_records_select(queue_item::TABLE, $insql, $inparams, $sort);
-        return array_map(function($r) {return new queue_item(0, $r);}, $runningrecords);
+        return queue_item::get_records_select($insql, $inparams);
     }
 
     /**
@@ -127,15 +130,7 @@ class queue_service {
             'payload' => json_encode($payload),
         ]);
 
-        try {
-            $qitem->save();
-        } catch (moodle_exception $e) {
-            error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s DEBUGINFO: %s', $e->getMessage(), $e->debuginfo));
-            debugging(sprintf('[LOGSTORE_XAPI][ERROR] %s DEBUGINFO: %s', $e->getMessage(), $e->debuginfo), DEBUG_DEVELOPER);
-        } catch (Throwable $e) {
-            error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()));
-            debugging(sprintf('[LOGSTORE_XAPI][ERROR] %s', $e->getMessage()), DEBUG_DEVELOPER);
-        }
+        $qitem->save();
 
         return $qitem;
     }

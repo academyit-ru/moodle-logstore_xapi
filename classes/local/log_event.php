@@ -28,6 +28,8 @@ namespace logstore_xapi\local;
 use ArrayAccess;
 use coding_exception;
 use moodle_database;
+use moodle_exception;
+use Throwable;
 
 /**
  * @property-read int    $id
@@ -74,20 +76,13 @@ class log_event implements ArrayAccess {
      * @return bool
      */
     public function has_attachments() {
-        // TODO: Проверить включено ли у задания отправка ответов в виде файлов и были ли загружены файлы студентом
-        $eventnames = [
-            '\mod_assign\event\submission_graded'
-        ];
-        $extraevents = get_config('logstore_xapi', 'events_with_attachments');
-        if (!$extraevents) {
-            $extraevents = [];
+        /** @var file_finder_mod_assign */
+        try {
+            $filefinder = file_finder::factory($this);
+            return $filefinder->has_attachments($this);
+        } catch (moodle_exception $e) {
+            return false;
         }
-
-        $eventnames = array_merge($eventnames, $extraevents);
-
-        return (
-            true === in_array($this->record->eventname, $eventnames)
-        );
     }
 
     /**

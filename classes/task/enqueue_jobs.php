@@ -27,6 +27,8 @@ namespace logstore_xapi\task;
 use logstore_xapi\local\log_event;
 use logstore_xapi\local\queue_service;
 use moodle_database;
+use moodle_exception;
+use Throwable;
 
 class enqueue_jobs extends \core\task\scheduled_task {
 
@@ -46,23 +48,37 @@ class enqueue_jobs extends \core\task\scheduled_task {
 
         $queueservice = queue_service::instance();
         mtrace('Getting log events to handle...');
-        $events = $this->find_unhandled_events();
-        mtrace(sprintf('-- Found %d events', count($events)));
-        if ([] === $events) {
-            mtrace(sprintf('-- No events found. Stopping execution.'));
-            return;
-        }
-
-        mtrace('Sorting events into queues...');
-        $eventsqueues = $this->map_queues($events);
-
-        foreach ($eventsqueues as $tuple) {
-            list($events, $queuename) = $tuple;
-            mtrace(sprintf('-- Queue: %s; Events count: %d', $queuename, count($events)));
-            foreach ($events as $logevent) {
-                $queueservice->push($logevent, $queuename);
+        try {
+            $events = $this->find_unhandled_events();
+            mtrace(sprintf('-- Found %d events', count($events)));
+            if ([] === $events) {
+                mtrace(sprintf('-- No events found. Stopping execution.'));
+                return;
             }
+
+            mtrace('Sorting events into queues...');
+            $eventsqueues = $this->map_queues($events);
+
+            foreach ($eventsqueues as $tuple) {
+                list($events, $queuename) = $tuple;
+                mtrace(sprintf('-- Queue: %s; Events count: %d', $queuename, count($events)));
+                foreach ($events as $logevent) {
+                    $queueservice->push($logevent, $queuename);
+                }
+            }
+        } catch (moodle_exception $e) {
+            mtrace('Exception was thrown. More info in logs');
+            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s %s debug: %s trace: %s', static::class, $e->getMessage(), $e->debuginfo, $e->getTraceAsString());
+            error_log($errmsg);
+            debugging($errmsg, DEBUG_DEVELOPER);
+        } catch (Throwable $e) {
+            mtrace('Exception was thrown. More info in logs');
+            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s trace: %s', static::class, $e->getMessage(), $e->getTraceAsString());
+            error_log($errmsg);
+            debugging($errmsg, DEBUG_DEVELOPER);
         }
+
+
     }
 
     /**

@@ -58,26 +58,30 @@ class emit_statement extends \core\task\scheduled_task {
             mtrace(sprintf('Gettig items from queue %s...', queue_service::QUEUE_EMIT_STATEMENTS));
             $records = $queueservice->pop($batchsize, queue_service::QUEUE_EMIT_STATEMENTS);
             if (0 === count($records)) {
-                mtrace('There are no log records to sent. Stopping.');
+                mtrace(__CLASS__ .': There are no log records to sent. Stopping.');
                 return;
             }
             mtrace(sprintf('-- Queue items count %d', count($records)));
             $batchjob = new emit_statements_batch_job($records, $DB);
             $batchjob->run();
             $completeditems = $batchjob->result_success();
-            $queueservice->complete($completeditems);
+            if ([] !== $completeditems) {
+                $queueservice->complete($completeditems);
+            }
             $itemswitherror = $batchjob->result_error();
             if ([] !== $itemswitherror) {
                 $queueservice->requeue($itemswitherror);
             }
             mtrace(sprintf('-- Completed %d; Has errors %d', count($completeditems), count($itemswitherror)));
         } catch (moodle_exception $e) {
-            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s %s debug: %s', static::class, $e->getMessage(), $e->debuginfo);
+            mtrace('Exception was thrown. More info in logs');
+            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s %s debug: %s trace: %s', static::class, $e->getMessage(), $e->debuginfo, $e->getTraceAsString());
             error_log($errmsg);
             debugging($errmsg, DEBUG_DEVELOPER);
             $queueservice->requeue($records);
         } catch (Throwable $e) {
-            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s %s', static::class, $e->getMessage());
+            mtrace('Exception was thrown. More info in logs');
+            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s trace: %s', static::class, $e->getMessage(), $e->getTraceAsString());
             error_log($errmsg);
             debugging($errmsg, DEBUG_DEVELOPER);
             $queueservice->requeue($records);

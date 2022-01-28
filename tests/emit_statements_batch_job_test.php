@@ -34,7 +34,7 @@ use logstore_xapi\local\queue_service;
 use logstore_xapi\task\emit_statement;
 use logstore_xapi\task\enqueue_jobs;
 use moodle_database;
-use testable_assign;
+use assign;
 use src\loader\utils as utils;
 
 require_once dirname(__DIR__) . '/src/autoload.php';
@@ -121,7 +121,7 @@ class emit_statements_batch_job_testcase extends advanced_testcase {
         global $DB;
         $cm = get_coursemodule_from_instance('assign', $assignrecord->id);
         $context = context_module::instance($cm->id);
-        $assign = new testable_assign($context, $cm, $course);
+        $assign = new assign($context, $cm, $course);
         $submission = $assign->get_user_submission($student->id, true);
         $coursecontext = context_course::instance($course->id);
         $logevents = [

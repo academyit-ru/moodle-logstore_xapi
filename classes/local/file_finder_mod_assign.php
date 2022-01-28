@@ -60,7 +60,6 @@ class file_finder_mod_assign extends file_finder {
         switch ($logevent->eventname) {
             case '\mod_assign\event\submission_graded':
                 $assignid = (int) $logevent->contextinstanceid;
-                $submissionid = $logevent->objectid;
                 if (false === $this->is_assign_submisssion_file_enabled($assignid)) {
                     debugging("Для задания {$assignid} не включены ответы в виде файлов", DEBUG_DEVELOPER);
                     break;
@@ -104,7 +103,14 @@ class file_finder_mod_assign extends file_finder {
                     AND acfg.value   = '1'
                     AND acfg.subtype = 'assignsubmission'
                     AND acfg.plugin  = 'file'";
-
         return (bool) $this->db->get_field_sql($sql, ['assignid' => $assignid]);
+    }
+
+    /**
+     * @param log_event $logevent
+     * @return bool
+     */
+    public function has_attachments(log_event $logevent) {
+        return (bool) $this->find_for($logevent);
     }
 }

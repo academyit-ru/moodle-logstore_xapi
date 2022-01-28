@@ -30,7 +30,7 @@ use logstore_xapi\local\log_event;
 use logstore_xapi\local\persistent\xapi_attachment;
 use logstore_xapi\task\enqueue_jobs;
 use moodle_database;
-use testable_assign;
+use assign;
 
 require_once dirname(__DIR__) . '/src/autoload.php';
 
@@ -89,7 +89,7 @@ class xapi_assignment_graded_with_filesubmissions_testcase extends advanced_test
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, $this->teacherroleid);
         $cm = get_coursemodule_from_instance('assign', $instance->id);
         $context = context_module::instance($cm->id);
-        $assign = new testable_assign($context, $cm, $course);
+        $assign = new assign($context, $cm, $course);
 
         $this->setUser($student->id);
         $submission = $assign->get_user_submission($student->id, true);
@@ -170,7 +170,7 @@ class xapi_assignment_graded_with_filesubmissions_testcase extends advanced_test
      *
      *
      */
-    protected function create_log_events($student, $teacher, testable_assign $assign, $course, $grade) {
+    protected function create_log_events($student, $teacher, assign $assign, $course, $grade) {
         /** @var moodle_database $DB */
         global $DB;
 

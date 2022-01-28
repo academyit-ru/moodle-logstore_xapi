@@ -25,23 +25,19 @@
 namespace logstore_xapi;
 
 use advanced_testcase;
-use context_course;
 use context_module;
 use DateTimeImmutable;
 use logstore_xapi\event\attachment_published;
-use logstore_xapi\local\emit_statements_batch_job;
 use logstore_xapi\local\log_event;
 use logstore_xapi\local\persistent\queue_item;
 use logstore_xapi\local\persistent\xapi_attachment;
-use logstore_xapi\local\persistent\xapi_record;
 use logstore_xapi\local\publish_attachments_batch_job;
 use logstore_xapi\local\queue_service;
 use logstore_xapi\local\s3client_interface;
 use logstore_xapi\task\emit_statement;
 use logstore_xapi\task\enqueue_jobs;
 use moodle_database;
-use testable_assign;
-use src\loader\utils as utils;
+use assign;
 
 require_once dirname(__DIR__) . '/src/autoload.php';
 
@@ -107,7 +103,7 @@ class publish_attachments_batch_job_testcase extends advanced_testcase {
 
         $cm = get_coursemodule_from_instance('assign', $instance->id);
         $context = context_module::instance($cm->id);
-        $assign = new testable_assign($context, $cm, $course1);
+        $assign = new assign($context, $cm, $course1);
 
         $this->setUser($student->id);
         $submission = $assign->get_user_submission($student->id, true);
@@ -194,9 +190,27 @@ class publish_attachments_batch_job_testcase extends advanced_testcase {
 
     /**
      *
+     * Дано:
+     *      - Есть курс
+     *      - На курсе есть модуль задания
+     *      - На курс записан студент и преподаватель
+     *      - В журнале logstore_xapi_log есть записи о его работе (загружен файл для задания)
+     *      - В очереди PUBLISH_ATTACHMENTS N записей связанные с N записей из таблицы logstore_xapi_log
+     *      - В таблице {@see xapi_attachment::TABLE} пусто
+     * Выполнить:
+     *      - Выполнить $job->run()
+     * Результат:
+     *      - В таблице {@see xapi_attachment::TABLE} созданы записи связанные с записями из logstore_xapi_log
+     *      - У каждой записи колонки s3_url, s3_filename, s3_sha2, s3_filesize, s3_contenttype содержат данные полученные из LRS
+     *      - После отправки артефактов в очереди EMIT_STATEMENTS появилась запись для отправки выражения в LRS
+     */
+    public function test_requeues_job_on_s3exception() {
+    }
+    /**
+     *
      *
      */
-    protected function create_log_events($student, $teacher, testable_assign $assign, $course, $grade) {
+    protected function create_log_events($student, $teacher, assign $assign, $course, $grade) {
         /** @var moodle_database $DB */
         global $DB;
         $logevents = [

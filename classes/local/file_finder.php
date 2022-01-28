@@ -43,7 +43,7 @@ abstract class file_finder {
             case 'mod_assign':
                 return new file_finder_mod_assign($DB, $fs);
             default:
-                throw new coding_exception('Неизвестное событие ' . $logevent->component);
+                throw new coding_exception(sprintf('%s: Неизвестный компонет %s', static::class, $logevent->component), json_encode($logevent->to_record()));
         }
     }
 
@@ -52,4 +52,10 @@ abstract class file_finder {
      * @return stored_file[]
      */
     abstract public function find_for(log_event $logevent);
+
+    /**
+     * @param log_event $logevent
+     * @return bool
+     */
+    abstract public function has_attachments(log_event $logevent);
 }

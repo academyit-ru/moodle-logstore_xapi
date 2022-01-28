@@ -25,6 +25,8 @@ namespace logstore_xapi\local;
 
 use logstore_xapi\event\attachment_published;
 use logstore_xapi\local\queue_service;
+use moodle_exception;
+use Throwable;
 
 /**
  * Observer класс
@@ -40,9 +42,32 @@ class observer {
      * @return void
      */
     public static function attachment_published(attachment_published $event) {
-        $queueservice = queue_service::instance();
-        $xapievent = $event->get_record_snapshot('logstore_xapi_log', $event->other['logrecordid']);
-        $queueservice->push($xapievent, queue_service::QUEUE_EMIT_STATEMENTS);
+        try {
+            $queueservice = queue_service::instance();
+            $logevent = $event->get_record_snapshot('logstore_xapi_log', $event->other['logrecordid']);
+            $queueservice->push(new log_event($logevent), queue_service::QUEUE_EMIT_STATEMENTS);
+            if (debugging()) {
+                error_log(sprintf(
+                    '[LOGSTORE_XAPI][DEBUG] %s: Pushed logevent id:%d in to the queue: %s',
+                    static::class,
+                    $logevent->id,
+                    queue_service::QUEUE_EMIT_STATEMENTS
+                ));
+            }
+        } catch (moodle_exception $e) {
+            error_log(sprintf(
+                '[LOGSTORE_XAPI][ERROR] %s: %s debug: %s',
+                static::class,
+                $e->getMessage(),
+                $e->debuginfo
+            ));
+        } catch (Throwable $e) {
+            error_log(sprintf(
+                '[LOGSTORE_XAPI][ERROR] %s: %s ',
+                static::class,
+                $e->getMessage()
+            ));
+        }
     }
 
 }

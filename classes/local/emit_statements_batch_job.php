@@ -140,18 +140,19 @@ class emit_statements_batch_job extends base_batch_job {
         mtrace('-- Failed events ' . count($failed));
         mtrace('-- Registered events ' . count($registered));
 
-        $errortuples = $this->map_queueitems_with_loadedevent($failed);
-        $this->resulterror = array_map(function($tuple) {
-            /** @var queue_item $qitem */
-            list($qitem, $loadedevent) = $tuple;
-            $errormsg = $loadedevent['error'] ?? '';
-            $qitem->set('lasterror', $errormsg);
+        if (0 < count($failed)) {
+            $errortuples = $this->map_queueitems_with_loadedevent($failed);
+            $this->resulterror = array_map(function($tuple) {
+                /** @var queue_item $qitem */
+                list($qitem, $loadedevent) = $tuple;
+                $errormsg = $loadedevent['error'] ?? '';
+                $qitem->set('lasterror', $errormsg);
 
-            return $qitem;
-        }, $errortuples);
+                return $qitem;
+            }, $errortuples);
+        }
 
         if (0 < count($registered)) {
-
             $registeredtuples = $this->map_queueitems_with_loadedevent($registered);
 
             $xapirecords = [];
@@ -170,6 +171,12 @@ class emit_statements_batch_job extends base_batch_job {
             $this->xapirecords = array_map(
                 function (xapi_record $xapirecord) {
                     $xapirecord->save();
+                    mtrace(sprintf(
+                        '------ created xapirecord id:%d lrs_uuid:%s eventid:%d',
+                        $xapirecord->get('id'),
+                        $xapirecord->get('lrs_uuid'),
+                        $xapirecord->get('eventid')
+                    ));
                     return $xapirecord;
                 },
                 $xapirecords
@@ -219,7 +226,7 @@ class emit_statements_batch_job extends base_batch_job {
      */
     protected function filter_failed_statements(array $loadedevents) {
         return array_filter($loadedevents, function($event) {
-            return $event['loaded'] === false;
+            return (bool) $event['loaded'] === false;
         });
     }
 
@@ -239,31 +246,38 @@ class emit_statements_batch_job extends base_batch_job {
      */
     protected function filter_registered_staetments(array $loadedevents) {
         return array_filter($loadedevents, function($event) {
-            return $event['loaded'] === true;
+            return (bool) $event['loaded'] === true;
         });
     }
 
     /**
      * Отфильтрует список задач по $loadedevents
      *
-     * @param log_event[] $loadedevents
+     * @param mixed[] $loadedevents [
+     *      'event' => log_event,
+     *      'statement' => string,
+     *      'transformed' => bool,
+     *      'loaded' => true,
+     *      'uuid' => string,
+     *      'error' => null
+     * ]
      *
      * @return mixed[
      *      [queue_item, $loadedevent]
      * ]
      */
     protected function map_queueitems_with_loadedevent(array $loadedevents) {
-        $queueitems = [];
+        $queueitemsbylogid = [];
         foreach ($this->queueitems as $qitem) {
-            $queueitems[$qitem->get('logrecordid')] = $qitem;
+            $queueitemsbylogid[$qitem->get('logrecordid')] = $qitem;
         }
         return array_filter(
-            array_map(function ($loadedevent) use ($queueitems) {
+            array_map(function ($loadedevent) use ($queueitemsbylogid) {
                 $logrecord = $loadedevent['event'] ?? null;
-                if (!array_key_exists($logrecord->id, $queueitems)) {
+                if (!array_key_exists($logrecord->id, $queueitemsbylogid)) {
                     return false;
                 }
-                return [$queueitems[$logrecord->id], $loadedevent];
+                return [$queueitemsbylogid[$logrecord->id], $loadedevent];
             }, $loadedevents)
         );
     }
