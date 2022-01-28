@@ -110,7 +110,9 @@ SQL;
         }
         $cutoffdate = get_config('logstore_xapi', 'enqueue_jobs_task_cutoffdate');
         try {
-            $cutoffdate = new DateTimeImmutable($cutoffdate, core_date::get_server_timezone_object());
+            if ($cutoffdate) {
+                $cutoffdate = new DateTimeImmutable($cutoffdate, core_date::get_server_timezone_object());
+            }
         } catch (Throwable $e) {
             $cutoffdate = false;
         }
