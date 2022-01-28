@@ -47,7 +47,7 @@ class store implements log_writer {
     /**
      * Should the event be ignored (not logged)? Overrides helper_writer.
      * @param event_base $event
-     * @return bool
+     * @return bool true если нужно пропустить событие
      *
      */
     public function is_event_ignored($event) {
@@ -59,10 +59,21 @@ class store implements log_writer {
             return true;
         }
 
+        $extradebugxapistore = (bool) get_config('logstore_xapi', 'extradebugxapistore');
+        if (true === $extradebugxapistore) {
+            error_log(sprintf('[%s][DEBUG]: Checking event name %s', __CLASS__, $event->eventname));
+        }
+
         $enabledevents = explode(',', $this->get_config('routes', ''));
-        $isdisabledevent = !in_array($event->eventname, $enabledevents);
-        if ($isdisabledevent) {
-            return $isdisabledevent;
+        if (false === in_array($event->eventname, $enabledevents)) {
+            if (true === $extradebugxapistore) {
+                error_log(sprintf('[%s][DEBUG]: Event name %s disabled', __CLASS__, $event->eventname));
+            }
+            return true;
+        }
+
+        if (true === $extradebugxapistore) {
+            error_log(sprintf('[%s][DEBUG]: Checking course %d', __CLASS__, $event->courseid));
         }
 
         $courses = explode(',', get_config('logstore_xapi', 'courses'));
@@ -72,6 +83,9 @@ class store implements log_writer {
         }
 
         // Так как xapi используется только для интеграции с УНТИ то учитываем только их учётки
+        if (true === $extradebugxapistore) {
+            error_log(sprintf('[%s][DEBUG]: Checking user or relateduser are from UNTI userid: %d relateduserid: %d', __CLASS__, $event->userid, $event->relateduserid));
+        }
         $userids = $DB->get_fieldset_select('user', 'id', 'auth = ?', ['untissooauth']);
         $usernotfromunti = !(in_array($event->userid, $userids) || in_array($event->relateduserid, $userids));
 
@@ -103,10 +117,10 @@ class store implements log_writer {
         global $CFG;
         require(__DIR__ . '/../../version.php');
         $logerror = function ($message = '') {
-            debugging($message, DEBUG_NORMAL);
+            error_log('[LOGSTORE_XAPI][ERROR] ' . $message);
         };
         $loginfo = function ($message = '') {
-            debugging($message, DEBUG_DEVELOPER);
+            error_log('[LOGSTORE_XAPI][INFO] ' . $message);
         };
         $loader = 'moodle_curl_lrs';
         $cfgloader = get_config('logstore_xapi', 'loader');
@@ -142,6 +156,9 @@ class store implements log_writer {
         return $loadedevents;
     }
 
+    /**
+     * TODO: Убрать этот метод, так как судя по всему он не используется
+     */
     public function get_userinfo(array $events) {
         global $DB;
         global $CFG;
