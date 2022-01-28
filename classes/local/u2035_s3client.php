@@ -63,10 +63,10 @@ class u2035_s3client implements s3client_interface {
      * @return self
      */
     public static function build() {
-        $awsendpoint = get_config('logstore_xapi', 'u2035_aws_endpoint');
+        $awsendpoint = get_config('logstore_xapi', 's3_endpoint');
         $awskey      = get_config('logstore_xapi', 'u2035_aws_key');
         $awssecret   = get_config('logstore_xapi', 'u2035_aws_secret');
-        $awsbucket   = get_config('logstore_xapi', 'u2035_aws_bucket');
+        $awsbucket   = get_config('logstore_xapi', 's3_bucket');
 
         foreach (compact('awsendpoint', 'awskey', 'awssecret', 'awsbucket') as $name => $conf) {
             if (false === $conf) {
