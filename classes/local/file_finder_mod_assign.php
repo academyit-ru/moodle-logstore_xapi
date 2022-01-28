@@ -59,12 +59,13 @@ class file_finder_mod_assign extends file_finder {
 
         switch ($logevent->eventname) {
             case '\mod_assign\event\submission_graded':
-                $assignid = (int) $logevent->contextinstanceid;
-                if (false === $this->is_assign_submisssion_file_enabled($assignid)) {
-                    debugging("Для задания {$assignid} не включены ответы в виде файлов", DEBUG_DEVELOPER);
+                $cmid = (int) $logevent->contextinstanceid;
+                if (false === $this->is_assign_submisssion_file_enabled($cmid)) {
+                    debugging("Для задания cmid:{$cmid} не включены ответы в виде файлов", DEBUG_DEVELOPER);
                     break;
                 }
 
+                $assignid = $this->db->get_field('course_modules', 'instance', ['id' => $cmid]);
                 $conditions = [
                     'assignment' => $assignid,
                     'userid' => $logevent->relateduserid,
@@ -94,16 +95,16 @@ class file_finder_mod_assign extends file_finder {
      * @param int $assignid
      * @return bool
      */
-    protected function is_assign_submisssion_file_enabled($assignid) {
+    protected function is_assign_submisssion_file_enabled($cmid) {
         $sql = "SELECT true
                 FROM {assign_plugin_config} acfg
                 WHERE
-                    acfg.assignment  = :assignid
+                    acfg.assignment  = (SELECT cm.instance FROM {course_modules} cm WHERE cm.id = :cmid)
                     AND acfg.name    = 'enabled'
                     AND acfg.value   = '1'
                     AND acfg.subtype = 'assignsubmission'
                     AND acfg.plugin  = 'file'";
-        return (bool) $this->db->get_field_sql($sql, ['assignid' => $assignid]);
+        return (bool) $this->db->get_field_sql($sql, ['cmid' => $cmid]);
     }
 
     /**
