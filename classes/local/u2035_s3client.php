@@ -101,7 +101,7 @@ class u2035_s3client implements s3client_interface {
     public function upload($key, $body, $bucketname = null,  $acl = 'public-read') {
         $bucketname = $bucketname ?? $this->defaultbucketname;
         $response = $this->client->upload($bucketname, $key, $body, $acl);
-        $result = (object) [
+        $result = [
             'etag' => $response['ETag'],
             'url' => $response['ObjectURL'],
             'lastmodified' => new DateTimeImmutable($response['LastModified']),

@@ -74,4 +74,20 @@ class xapi_attachment extends persistent {
             ],
         ];
     }
+
+    /**
+     *
+     * @return int
+     */
+    protected function get_eventid() {
+        return (int) $this->raw_get('eventid');
+    }
+
+    /**
+     *
+     * @return int
+     */
+    protected function get_s3_filesize() {
+        return (int) $this->raw_get('s3_filesize');
+    }
 }
