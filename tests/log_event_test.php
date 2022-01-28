@@ -120,7 +120,7 @@ class log_event_testcase extends advanced_testcase {
             "edulevel" => 1,
             "contextid" => $assign->get_context()->id,
             "contextlevel" => 70,
-            "contextinstanceid" => $assign->get_instance()->id,
+            "contextinstanceid" => $assign->get_context()->instanceid,
             "userid" => $teacher->id,
             "courseid" => $course1->id,
             "relateduserid" => $student->id,

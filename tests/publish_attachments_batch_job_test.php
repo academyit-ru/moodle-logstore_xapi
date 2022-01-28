@@ -225,7 +225,7 @@ class publish_attachments_batch_job_testcase extends advanced_testcase {
                 "edulevel" => 1,
                 "contextid" => $assign->get_context()->id,
                 "contextlevel" => 70,
-                "contextinstanceid" => $assign->get_instance()->id,
+                "contextinstanceid" => $assign->get_context()->instanceid,
                 "userid" => $teacher->id,
                 "courseid" => $course->id,
                 "relateduserid" => $student->id,
