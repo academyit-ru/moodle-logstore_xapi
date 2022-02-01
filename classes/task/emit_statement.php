@@ -62,7 +62,7 @@ class emit_statement extends \core\task\scheduled_task {
                 return;
             }
             mtrace(sprintf('-- Queue items count %d', count($records)));
-            $batchjob = new emit_statements_batch_job($records, $DB);
+            $batchjob = $this->new_emit_statements_batch_job($records, $DB);
             $batchjob->run();
             $completeditems = $batchjob->result_success();
             if ([] !== $completeditems) {
@@ -86,5 +86,15 @@ class emit_statement extends \core\task\scheduled_task {
             debugging($errmsg, DEBUG_DEVELOPER);
             $queueservice->requeue($records);
         }
+    }
+
+    /**
+     * @param array $records
+     * @param moodle_database $db
+     *
+     * @return emit_statements_batch_job
+     */
+    public function new_emit_statements_batch_job(array $records, moodle_database $db) {
+        new emit_statements_batch_job($records, $db);
     }
 }
