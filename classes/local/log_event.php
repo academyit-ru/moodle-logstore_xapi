@@ -176,9 +176,9 @@ class log_event implements ArrayAccess {
         $records = $DB->get_records(static::TABLE, $filters, $orderby, '*', $skip, $limit);
         $instances = array();
 
-        foreach ($records as $record) {
+        foreach ($records as $id => $record) {
             $newrecord = new static(0, $record);
-            array_push($instances, $newrecord);
+            $instances[$id] = $newrecord;
         }
 
         return $instances;
