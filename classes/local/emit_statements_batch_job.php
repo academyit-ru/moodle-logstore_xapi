@@ -29,6 +29,8 @@ use core_plugin_manager;
 use logstore_xapi\local\persistent\queue_item;
 use logstore_xapi\local\persistent\xapi_record;
 use moodle_database;
+use src\transformer\repos\exceptions\TypeNotFound as TypeNotFoundException;
+use Throwable;
 
 class emit_statements_batch_job extends base_batch_job {
 
@@ -101,8 +103,8 @@ class emit_statements_batch_job extends base_batch_job {
 
         $pluginrelease = $this->get_plugin_release();
         $logerror = function ($message = '') {
-            error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $message));
             if (!PHPUNIT_TEST) {
+                error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $message));
                 debugging($message, DEBUG_NORMAL);
             }
         };
@@ -150,7 +152,10 @@ class emit_statements_batch_job extends base_batch_job {
                 /** @var queue_item $qitem */
                 list($qitem, $loadedevent) = $tuple;
                 $errormsg = $loadedevent['error'] ?? '';
-                $qitem->set('lasterror', $errormsg);
+                if ($errormsg instanceof Throwable && get_class($errormsg) === TypeNotFoundException::class) {
+                    $qitem->mark_as_banned();
+                }
+                $qitem->set('lasterror', (string) $errormsg);
 
                 return $qitem;
             }, $errortuples);
