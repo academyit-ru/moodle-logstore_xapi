@@ -226,7 +226,7 @@ class emit_statements_batch_job extends base_batch_job {
      */
     protected function filter_failed_statements(array $loadedevents) {
         return array_filter($loadedevents, function($event) {
-            return (bool) $event['loaded'] === false;
+            return (false === $this->is_registered_statement($event));
         });
     }
 
@@ -244,10 +244,28 @@ class emit_statements_batch_job extends base_batch_job {
      *      'error' => null
      * ]
      */
-    protected function filter_registered_staetments(array $loadedevents) {
-        return array_filter($loadedevents, function($event) {
-            return (bool) $event['loaded'] === true;
+    protected function filter_registered_staetments(array $loadedevents)
+    {
+        return array_filter($loadedevents, function ($event) {
+            return (true === $this->is_registered_statement($event));
         });
+    }
+
+    /**
+     *
+     * @param mixed[] [
+     *      'event' => log_event,
+     *      'statement' => string,
+     *      'transformed' => bool,
+     *      'loaded' => true,
+     *      'uuid' => string,
+     *      'error' => null
+     * ]
+     * @return bool
+     */
+    protected function is_registered_statement($event)
+    {
+        return (bool) $event['loaded'] === true && (bool) $event['transformed'] === true;
     }
 
     /**

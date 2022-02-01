@@ -39,7 +39,7 @@ function construct_loaded_events(array $transformedevents, $loaded, $response = 
         if (true === $loaded) {
             $uuid = _extract_uuid($response, $offset);
         } else {
-            $error = $response['error'];
+            $error = $response['error'] ?? '';
         }
         return [
             'event' => $transformedevent['event'],
