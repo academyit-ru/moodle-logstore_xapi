@@ -102,10 +102,14 @@ class emit_statements_batch_job extends base_batch_job {
         $pluginrelease = $this->get_plugin_release();
         $logerror = function ($message = '') {
             error_log(sprintf('[LOGSTORE_XAPI][ERROR] %s', $message));
-            debugging($message, DEBUG_NORMAL);
+            if (!PHPUNIT_TEST) {
+                debugging($message, DEBUG_NORMAL);
+            }
         };
         $loginfo = function ($message = '') {
-            debugging($message, DEBUG_DEVELOPER);
+            if (!PHPUNIT_TEST) {
+                debugging($message, DEBUG_DEVELOPER);
+            }
         };
         $handlerconfig = [
             'log_error' => $logerror,

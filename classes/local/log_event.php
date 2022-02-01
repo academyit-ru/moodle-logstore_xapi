@@ -81,7 +81,9 @@ class log_event implements ArrayAccess {
             $filefinder = file_finder::factory($this);
             return $filefinder->has_attachments($this);
         } catch (moodle_exception $e) {
-            debugging(sprintf('%s:%s Error: %s debug: %s', __CLASS__, __METHOD__, $e->getMessage(), $e->debuginfo), DEBUG_DEVELOPER);
+            if (debugging() && !PHPUNIT_TEST) {
+                debugging(sprintf('%s:%s Error: %s debug: %s', __CLASS__, __METHOD__, $e->getMessage(), $e->debuginfo), DEBUG_DEVELOPER);
+            }
             return false;
         }
     }
@@ -92,16 +94,19 @@ class log_event implements ArrayAccess {
      */
     public function __get($name) {
         if (false === isset($this->record->$name)) {
-            debugging(
-                sprintf(
-                    '%s: неизвестное свойство записи %s, debug: %s, trace: %s',
-                    static::class,
-                    $name,
-                    json_encode(['name' => $name, 'record' => $this->record]),
-                    (new \Exception())->getTraceAsString()
-                ),
-                DEBUG_DEVELOPER
-            );
+            if (debugging() && !PHPUNIT_TEST) {
+                debugging(
+                    sprintf(
+                        '%s: неизвестное свойство записи %s, debug: %s, trace: %s',
+                        static::class,
+                        $name,
+                        json_encode(['name' => $name, 'record' => $this->record]),
+                        (new \Exception())->getTraceAsString()
+                    ),
+                    DEBUG_DEVELOPER
+                );
+            }
+
             throw new coding_exception(
                 static::class . ': неизвестное свойство записи ' . $name,
                 json_encode(['name' => $name, 'record' => $this->record])
