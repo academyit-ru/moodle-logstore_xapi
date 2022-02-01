@@ -154,8 +154,11 @@ class emit_statements_batch_job_testcase extends advanced_testcase {
         $job->set_loader([$this, 'loader']);
         $job->run();
 
-        $this->assertNotEmpty($job->result_error());
+        $resulterror = $job->result_error();
+        $this->assertNotEmpty($resulterror);
+        $qitem = reset($resulterror);
 
+        $this->assertTrue($qitem->get('isbanned'));
     }
 
     /**
