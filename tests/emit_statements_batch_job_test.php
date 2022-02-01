@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Содержит тесткейс для класса logstore_xapi\task\emit_statement.
+ * Содержит тесткейс для класса logstore_xapi\local\emit_statements_batch_job.
  *
  * @package    logstore_xapi
  * @author     Victor Kilikaev vkilikaev@it.ru
@@ -35,6 +35,7 @@ use logstore_xapi\task\emit_statement;
 use logstore_xapi\task\enqueue_jobs;
 use moodle_database;
 use assign;
+use logstore_xapi\local\persistent\queue_item;
 use src\loader\utils as utils;
 
 require_once dirname(__DIR__) . '/src/autoload.php';
@@ -110,6 +111,51 @@ class emit_statements_batch_job_testcase extends advanced_testcase {
 
         $this->assertCount(3, $job->result_success());
         $this->assertCount(0, $job->result_error());
+    }
+
+    /**
+     ** Дано:
+     *      - Есть курс
+     *      - На курсе нет модуля задания
+     *      - На курс записан студент и преподаватель
+     *      - В журнале logstore_xapi_log есть записи о его работе
+     *      - В очереди EMIT_STATEMENTS N записей связанные с N записей из таблицы logstore_xapi_log
+     *      - При обработке события произойдёт ошибка
+     * Выполнить:
+     *      - Выполнить $job->run()
+     * Результат:
+     *      - Для события с ошибкой qitem
+     *          -  обновит своё значение attempts
+     *          -  будет заблокирован для повторной обработки
+     *          - сохранит пояснение в lasterror
+     */
+    public function test_when_event_trasnformation_throws_course_modules_not_found_its_qitem_banned() {
+        /** @var moodle_database $DB */
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $student = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user();
+        $course1 = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->enrol_user($student->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($teacher->id, $course1->id, $this->teacherroleid);
+        $datasetbasepath = dirname(__FILE__) . '/fixtures/dataset4';
+        $tablename = log_event::TABLE;
+        $dataset = $this->createCsvDataSet([$tablename => "{$datasetbasepath}/{$tablename}.csv"]);
+        $this->loadDataSet($dataset);
+
+        $this->create_queue_items();
+
+        $queueservice = queue_service::instance();
+        $queuerecords = $queueservice->pop(emit_statement::DEFAULT_BATCH_SIZE, queue_service::QUEUE_EMIT_STATEMENTS);
+
+        $job = new emit_statements_batch_job($queuerecords, $DB);
+        $job->set_loader([$this, 'loader']);
+        $job->run();
+
+        $this->assertNotEmpty($job->result_error());
+
     }
 
     /**
