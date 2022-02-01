@@ -44,13 +44,15 @@ function handler(array $config, array $events) {
             return $transformedevent;
         } catch (\Exception $e) {
             $logerror = $config['log_error'];
-            $logerror(sprintf("Failed transform for event id: %d Message: %s Trace: %s", $eventobj->id, $e->getMessage(), $e->getTraceAsString()));
+            $errmsg = sprintf("Failed transform for event id: %d Message: %s Debug: %s", $eventobj->id, $e->getMessage(), json_encode(['trace' => $e->getTraceAsString()]));
+            $logerror($errmsg);
 
             // Returns unsuccessfully transformed event without statements.
             $transformedevent = [
                 'event' => $eventobj,
                 'statements' => [],
                 'transformed' => false,
+                'error' => $errmsg
             ];
             return $transformedevent;
         }
