@@ -56,13 +56,13 @@ class emit_statement extends \core\task\scheduled_task {
 
         try {
             mtrace(sprintf('Gettig items from queue %s...', queue_service::QUEUE_EMIT_STATEMENTS));
-            $records = $queueservice->pop($batchsize, queue_service::QUEUE_EMIT_STATEMENTS);
-            if (0 === count($records)) {
+            $qitems = $queueservice->pop($batchsize, queue_service::QUEUE_EMIT_STATEMENTS);
+            if (0 === count($qitems)) {
                 mtrace(__CLASS__ .': There are no log records to sent. Stopping.');
                 return;
             }
-            mtrace(sprintf('-- Queue items count %d', count($records)));
-            $batchjob = new emit_statements_batch_job($records, $DB);
+            mtrace(sprintf('-- Queue items count %d', count($qitems)));
+            $batchjob = $this->new_emit_statements_batch_job($qitems, $DB);
             $batchjob->run();
             $completeditems = $batchjob->result_success();
             if ([] !== $completeditems) {
@@ -78,13 +78,23 @@ class emit_statement extends \core\task\scheduled_task {
             $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s %s debug: %s trace: %s', static::class, $e->getMessage(), $e->debuginfo, $e->getTraceAsString());
             error_log($errmsg);
             debugging($errmsg, DEBUG_DEVELOPER);
-            $queueservice->requeue($records);
+            $queueservice->requeue($qitems);
         } catch (Throwable $e) {
             mtrace('Exception was thrown. More info in logs');
             $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s trace: %s', static::class, $e->getMessage(), $e->getTraceAsString());
             error_log($errmsg);
             debugging($errmsg, DEBUG_DEVELOPER);
-            $queueservice->requeue($records);
+            $queueservice->requeue($qitems);
         }
+    }
+
+    /**
+     * @param array $records
+     * @param moodle_database $db
+     *
+     * @return emit_statements_batch_job
+     */
+    public function new_emit_statements_batch_job(array $records, moodle_database $db) {
+        new emit_statements_batch_job($records, $db);
     }
 }

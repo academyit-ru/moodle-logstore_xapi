@@ -18,9 +18,17 @@ namespace src\loader\utils;
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * @param array $events
+ * @param bool $transformed true - отфильтровать события которые удалось трансформировать false - вернуть события которые не удалось трансофрмировать
+ */
 function filter_transformed_events(array $events, $transformed) {
     $filteredevents = array_filter($events, function ($event) use ($transformed) {
-        return $event['transformed'] === $transformed && $event['statements'] !== [];
+        if (true === $transformed) {
+            return $event['transformed'] === true && $event['statements'] !== [];
+        } else {
+            return $event['transformed'] === false || $event['statements'] === [];
+        }
     });
     return $filteredevents;
 }

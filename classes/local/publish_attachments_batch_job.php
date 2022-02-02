@@ -31,6 +31,7 @@ use logstore_xapi\local\persistent\xapi_attachment;
 use moodle_database;
 use moodle_exception;
 use Aws\S3\Exception\S3Exception;
+use core_text;
 use stored_file;
 use Throwable;
 use zip_packer;
@@ -231,6 +232,7 @@ class publish_attachments_batch_job extends base_batch_job {
         global $DB;
 
         $courseshortname = $DB->get_field('course', 'shortname', ['id' => $logevent->courseid], MUST_EXIST);
+        $courseshortnametranslit = core_text::convert($courseshortname, 'utf-8', 'ascii');
         $cmid = $logevent->contextinstanceid;
         $untiid = $DB->get_field(
             'user',
@@ -241,7 +243,8 @@ class publish_attachments_batch_job extends base_batch_job {
 
         return vsprintf(
             '%s_cmid%s_untiid%s.zip',
-            [$courseshortname, $cmid, $untiid]
+            [$courseshortnametranslit, $cmid, $untiid]
         );
     }
+
 }

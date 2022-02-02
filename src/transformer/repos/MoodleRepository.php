@@ -15,6 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace src\transformer\repos;
+
+use src\transformer\repos\exceptions\TypeNotFound;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once(__DIR__.'/Repository.php');
@@ -50,7 +53,7 @@ class MoodleRepository extends Repository {
     public function read_record($type, array $query) {
         $record = $this->store->get_record($type, $query);
         if ($record === false) {
-            throw new \Exception("$type not found.");
+            throw new TypeNotFound($type);
         }
         return $record;
     }

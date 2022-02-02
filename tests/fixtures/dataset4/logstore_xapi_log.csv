@@ -1,0 +1,2 @@
+id,eventname,component,action,target,objecttable,objectid,crud,edulevel,contextid,contextlevel,contextinstanceid,userid,courseid,relateduserid,anonymous,other,timecreated,origin,ip,realuserid
+108776329,\mod_resource\event\course_module_viewed,mod_resource,viewed,course_module,resource,22526,r,2,83758,70,45828,35108,737,,0,"N;",1637564065,web,95.191.253.223,

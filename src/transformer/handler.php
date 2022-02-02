@@ -15,6 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace src\transformer;
+
+use src\transformer\repos\exceptions\TypeNotFound;
+
 defined('MOODLE_INTERNAL') || die();
 
 function handler(array $config, array $events) {
@@ -42,15 +45,31 @@ function handler(array $config, array $events) {
                 'transformed' => true,
             ];
             return $transformedevent;
-        } catch (\Exception $e) {
+        } catch (TypeNotFound $e) {
             $logerror = $config['log_error'];
-            $logerror(sprintf("Failed transform for event id: %d Message: %s Trace: %s", $eventobj->id, $e->getMessage(), $e->getTraceAsString()));
+            $e->addDebugInfo(['event id' => $eventobj->id]);
+            $errmsg = sprintf("Failed transform for event id: %d Message: %s", $eventobj->id, (string) $e);
+            $logerror($errmsg);
 
             // Returns unsuccessfully transformed event without statements.
             $transformedevent = [
                 'event' => $eventobj,
                 'statements' => [],
                 'transformed' => false,
+                'error' => $e
+            ];
+            return $transformedevent;
+        } catch (\Exception $e) {
+            $logerror = $config['log_error'];
+            $errmsg = sprintf("Failed transform for event id: %d Message: %s Debug: %s", $eventobj->id, $e->getMessage(), json_encode(['trace' => $e->getTraceAsString()]));
+            $logerror($errmsg);
+
+            // Returns unsuccessfully transformed event without statements.
+            $transformedevent = [
+                'event' => $eventobj,
+                'statements' => [],
+                'transformed' => false,
+                'error' => $errmsg
             ];
             return $transformedevent;
         }
