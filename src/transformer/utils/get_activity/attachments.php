@@ -22,8 +22,6 @@ use logstore_xapi\local\persistent\xapi_attachment;
 
 function attachments(array $config, $event) {
 
-    define('USAGE_TYPE', 'http://id.tincanapi.com/attachment/supporting_media');
-
     $attachments = xapi_attachment::get_records(['eventid' => $event->id]);
 
     $result = [];
@@ -36,7 +34,7 @@ function attachments(array $config, $event) {
             'contentType' => $attachment->get('s3_contenttype'),
             'length' => $attachment->get('s3_filesize'),
             'sha2' => $attachment->get('s3_sha2'),
-            'usageType' => USAGE_TYPE
+            'usageType' => 'http://id.tincanapi.com/attachment/supporting_media'
         ];
     }
 
