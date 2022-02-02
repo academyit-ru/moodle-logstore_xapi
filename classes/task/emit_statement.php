@@ -34,6 +34,8 @@ class emit_statement extends \core\task\scheduled_task {
 
     const DEFAULT_BATCH_SIZE = 150;
 
+    protected $defaultloader = 'moodle_curl_lrs';
+
     /**
      * @inheritdoc
      */
@@ -62,7 +64,7 @@ class emit_statement extends \core\task\scheduled_task {
                 return;
             }
             mtrace(sprintf('-- Queue items count %d', count($qitems)));
-            $batchjob = $this->new_emit_statements_batch_job($qitems, $DB);
+            $batchjob = $this->new_emit_statements_batch_job($qitems, $DB, $this->get_loader());
             $batchjob->run();
             $completeditems = $batchjob->result_success();
             if ([] !== $completeditems) {
@@ -94,7 +96,19 @@ class emit_statement extends \core\task\scheduled_task {
      *
      * @return emit_statements_batch_job
      */
-    public function new_emit_statements_batch_job(array $records, moodle_database $db) {
-        new emit_statements_batch_job($records, $db);
+    public function new_emit_statements_batch_job(array $records, moodle_database $db, $loader) {
+        return new emit_statements_batch_job($records, $db, $loader);
+    }
+
+    /**
+     * Вернёт loader который был настроен для отправки xAPI выражений в LRS
+     * @return callable|string
+     */
+    public function get_loader() {
+        $loader = get_config('logstore_xapi', 'loader_lrs');
+        if (!$loader) {
+            $loader = $this->defaultloader;
+        }
+        return $loader;
     }
 }
