@@ -16,14 +16,18 @@
 
 namespace src\loader;
 
+use coding_exception;
+
 defined('MOODLE_INTERNAL') || die();
 
 function handler(array $config, array $statements) {
     $loadername = $config['loader'];
-    if (is_callable($loadername)) {
+    if (is_string($loadername) && is_callable("\src\loader\\$loadername\load")) {
+        $load = "\src\loader\\$loadername\load";
+    } else if (is_callable($loadername)) {
         $load = $loadername;
     } else {
-        $load = "\src\loader\\$loadername\load";
+        throw new coding_exception('Invalid loader', $loadername);
     }
     return $load($config, $statements);
 }
