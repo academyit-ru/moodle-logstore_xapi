@@ -178,6 +178,31 @@ function xmldb_logstore_xapi_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2022012000, 'logstore', 'xapi');
     }
 
+    if ($oldversion < 2022020300) {
+
+        // Define table logstore_xapi_q_stats to be created.
+        $table = new xmldb_table('logstore_xapi_q_stats');
+
+        // Adding fields to table logstore_xapi_q_stats.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('val', XMLDB_TYPE_NUMBER, '10, 4', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('meta', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
+        $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
+
+        // Adding keys to table logstore_xapi_q_stats.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+        // Conditionally launch create table for logstore_xapi_q_stats.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Xapi savepoint reached.
+        upgrade_plugin_savepoint(true, 2022020300, 'logstore', 'xapi');
+    }
 
     return true;
 }
