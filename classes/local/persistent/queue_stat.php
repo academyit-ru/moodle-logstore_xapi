@@ -26,6 +26,7 @@
 namespace logstore_xapi\local\persistent;
 
 use core\persistent;
+use logstore_xapi\local\queue_monitor\measurements\base as measurement;
 
 class queue_stat extends persistent {
 
@@ -53,5 +54,20 @@ class queue_stat extends persistent {
                 'type' => PARAM_INT,
             ],
         ];
+    }
+
+    /**
+     * Заполнит запись прочитав данные из logstore_xapi\local\queue_monitor\measurements
+     * @param measurement $measurement
+     * @return self
+     */
+    public function from_measurement(measurement $measurement) {
+
+        $this->from_record((object) [
+            'name' => $measurement->get_name(),
+            'val' => $measurement->get_result(),
+        ]);
+
+        return $this;
     }
 }
