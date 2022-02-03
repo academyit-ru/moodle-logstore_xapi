@@ -48,6 +48,10 @@ class queue_stat extends persistent {
                 'null' => NULL_ALLOWED,
                 'type' => PARAM_TEXT,
             ],
+            'timemeasured' => [
+                'default' => 0,
+                'type' => PARAM_INT,
+            ],
         ];
     }
 }

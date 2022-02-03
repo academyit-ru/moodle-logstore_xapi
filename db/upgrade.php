@@ -188,6 +188,7 @@ function xmldb_logstore_xapi_upgrade($oldversion) {
         $table->add_field('name', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
         $table->add_field('val', XMLDB_TYPE_NUMBER, '10, 4', null, XMLDB_NOTNULL, null, null);
         $table->add_field('meta', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('timemeasured', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
         $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
         $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, null, null, '0');
