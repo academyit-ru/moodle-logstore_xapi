@@ -47,12 +47,20 @@ class read_stats_of_the_queue extends scheduled_task {
     public function execute() {
         $measurements = $this->build_measurements_stack();
 
+        if ([] === $measurements) {
+            mtrace('Ne nastroeni pokazateli dlya sbora statistiki');
+            return;
+        }
+        mtrace('Nachinau sbor dannih');
         /** @var measurement $measurement */
         foreach($measurements as $measurement) {
             $measurement->run();
         }
 
+        mtrace('Sohranyau dannie');
         $this->save_results($measurements);
+
+        mtrace('Procedura zaverchena');
     }
 
     /**
