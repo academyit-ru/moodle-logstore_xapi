@@ -67,27 +67,27 @@ class read_stats_of_the_queue extends scheduled_task {
      *
      * @return array
      */
-    public function build_measurements_stack() {
+    public function build_measurements_stack(): array {
         $stack = [];
 
         $msrmnt = new total_qitems();
-        $msrmnt->set_name('totalqueueitems');
+        $msrmnt->set_name('total:queueitems');
         $stack[] = $msrmnt;
 
         $msrmnt = (new total_qitems())->set_filter('queue', queue_service::QUEUE_EMIT_STATEMENTS);
-        $msrmnt->set_name('totalqueueitems_by_queue:' . queue_service::QUEUE_EMIT_STATEMENTS);
+        $msrmnt->set_name('total:queueitems_by_queue:' . queue_service::QUEUE_EMIT_STATEMENTS);
         $stack[] = $msrmnt;
 
         $msrmnt = (new total_qitems())->set_filter('queue', queue_service::QUEUE_PUBLISH_ATTACHMENTS);
-        $msrmnt->set_name('totalqueueitems_by_queue:' . queue_service::QUEUE_PUBLISH_ATTACHMENTS);
+        $msrmnt->set_name('total:queueitems_by_queue:' . queue_service::QUEUE_PUBLISH_ATTACHMENTS);
         $stack[] = $msrmnt;
 
         $msrmnt = (new total_qitems())->set_filter('isrunning', true);
-        $msrmnt->set_name('totalqueueitems_by_status:isrunning');
+        $msrmnt->set_name('total:queueitems_by_status:isrunning');
         $stack[] = $msrmnt;
 
         $msrmnt = (new total_qitems())->set_filter('isbanned', true);
-        $msrmnt->set_name('totalqueueitems_by_status:isbanned');
+        $msrmnt->set_name('total:queueitems_by_status:isbanned');
         $stack[] = $msrmnt;
 
         $sql = <<<SQL
@@ -96,7 +96,7 @@ class read_stats_of_the_queue extends scheduled_task {
         AND (NOW() - TO_TIMESTAMP(timestarted) > INTERVAL '24h')
 SQL;
         $msrmnt = (new total_qitems())->set_filter_sql($sql);
-        $msrmnt->set_name('totalqueueitems_by_status:stuck_running');
+        $msrmnt->set_name('total:queueitems_by_status:stuck_running');
         $stack[] = $msrmnt;
 
         $sql = <<<SQL
@@ -104,15 +104,17 @@ SQL;
         AND LENGTH(lasterror) > 0
 SQL;
         $msrmnt = (new total_qitems())->set_filter_sql($sql);
-        $msrmnt->set_name('totalqueueitems_by_status:has_errors');
+        $msrmnt->set_name('total:queueitems_by_status:has_errors');
         $stack[] = $msrmnt;
 
 
         $msrmnt = new total_attachments();
-        $stack['total:attachments'] = $msrmnt;
+        $msrmnt->set_name('total:attachments');
+        $stack[] = $msrmnt;
 
         $msrmnt = new total_lrs_records();
-        $stack['total:lrs_records'] = $msrmnt;
+        $msrmnt->set_name('total:lrs_records');
+        $stack[] = $msrmnt;
 
 
         return $stack;
