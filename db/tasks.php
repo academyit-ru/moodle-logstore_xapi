@@ -53,4 +53,22 @@ $tasks = [
         'dayofweek' => '*',
         'month' => '*'
     ],
+    [
+        'classname' => '\logstore_xapi\task\read_stats_of_the_queue',
+        'blocking' => 1,
+        'minute' => '*/5',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    ],
+    [
+        'classname' => '\logstore_xapi\task\prune_queue_stats',
+        'blocking' => 1,
+        'minute' => '0',
+        'hour' => '1',
+        'day' => '1',
+        'dayofweek' => '*',
+        'month' => '*'
+    ],
 ];
