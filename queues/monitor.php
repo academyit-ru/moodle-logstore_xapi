@@ -23,27 +23,35 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-Страница отображает виджеты с информацией из монитора очереди
 
-выводит текущие значения показателей:
-    - всех задач:
-        - всего
-        - в каждой очереди
-    - в обработке:
-        - всего
-        - в каждой очереди
-    - задч заблокировано
-        - всего
-        - в каждой очереди
-    - задач с ошибками
-        - всего
-        - в каждой очереди
+require_once dirname(__DIR__, 6) . '/config.php';
 
-Выводит графики динамики показателей:
-    - изменение общего числа задач в очереди
-    - изменение общего числа заблокированных задачь
-    - изменение общего числа задач в обработке
-    - изменение общего числа задач с ошибками
+require_login();
 
-Частотное распределение ошибок
-    - текст ошибки - количество раз возникновения ошибки за последние сутки
+
+$context = context_system::instance();
+$pageurl = new moodle_url('/admin/tool/log/store/xapi/queues/monitor.php');
+$title = get_string('pagetitle_queues_monitor', 'logstore_xapi');
+$heading = $title;
+
+require_capability('logstore/xapi:view_queue_monitor', $context);
+
+/** @var moodle_page $PAGE */
+$PAGE->set_context($context);
+$PAGE->set_url($pageurl);
+$PAGE->set_title($title);
+$PAGE->set_heading($heading);
+
+
+// Собрать данные для виджетов
+
+$widgetfactory = new logstore_xapi\local\queue_monitor\widget_factory($DB);
+$widgets = $widgetfactory->make_widget_collection();
+$renderable = new logstore_xapi\output\renderable\page_queue_monitor($widgets);
+
+/** @var logstore_xapi\output\renderer $renderer */
+$renderer = $PAGE->get_renderer('logstore_xapi');
+
+echo $renderer->header();
+echo $renderer->render($renderable);
+echo $renderer->footer();

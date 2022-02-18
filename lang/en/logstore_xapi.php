@@ -75,3 +75,4 @@ $string['u2035_aws_secrety_setting'] = 'Секрет к S3';
 $string['u2035_aws_secrety_setting_desc'] = 'S3 секретный ключ (AWS secret access key)';
 $string['read_stats_of_the_queue_task_name'] = 'Соберёт данные о процессе обработки очереди задач';
 $string['prune_queue_stats_task_name'] = 'Очистит устаревшие данные статистики очереди';
+$string['widget_title_total_queue_items'] = 'Количество задач в обработке';
