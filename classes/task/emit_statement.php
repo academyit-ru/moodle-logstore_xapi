@@ -83,7 +83,7 @@ class emit_statement extends \core\task\scheduled_task {
             $queueservice->requeue($qitems);
         } catch (Throwable $e) {
             mtrace('Exception was thrown. More info in logs');
-            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s trace: %s', static::class, $e->getMessage(), $e->getTraceAsString());
+            $errmsg = sprintf('[LOGSTORE_XAPI][ERROR] %s message: %s trace: %s', static::class, $e->getMessage(), $e->getTraceAsString());
             error_log($errmsg);
             debugging($errmsg, DEBUG_DEVELOPER);
             $queueservice->requeue($qitems);

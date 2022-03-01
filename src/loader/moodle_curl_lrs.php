@@ -45,6 +45,9 @@ function load(array $config, array $events) {
 
         $responsecode = $request->info['http_code'];
 
+	$msg = sprintf('[LOGSTORE_XAPI][MOODLE_CURL_LRS_LOADER][DEBUG] responsestatus: %s responsetext: %s', $responsecode, $responsetext);
+	error_log($msg);
+
         if ($responsecode !== 200) {
             throw new \Exception($responsetext);
         }
