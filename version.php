@@ -18,8 +18,8 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin = isset($plugin) && is_object($plugin) ? $plugin : new \stdClass();
 $plugin->component = 'logstore_xapi';
-$plugin->version = 2022030900;
-$plugin->release = 'v3.18.1-aplana-1.3.1-dev';
+$plugin->version = 2022030901;
+$plugin->release = 'v3.18.1-aplana-1.3.2-dev';
 $plugin->requires = 2014111000;
 $plugin->maturity = MATURITY_BETA;
 
