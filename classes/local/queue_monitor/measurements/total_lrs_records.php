@@ -14,15 +14,26 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Класс для сбора статистики
+ * общее число xAPI выражений отправленных в LRS
+ *
+ * @package   logstore_xapi
+ * @author    Victor Kilikaev vkilikaev@it.ru
+ * @copyright academyit.ru
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+namespace logstore_xapi\local\queue_monitor\measurements;
 
-$plugin = isset($plugin) && is_object($plugin) ? $plugin : new \stdClass();
-$plugin->component = 'logstore_xapi';
-$plugin->version = 2022030901;
-$plugin->release = 'v3.18.1-aplana-1.3.2-dev';
-$plugin->requires = 2014111000;
-$plugin->maturity = MATURITY_BETA;
+use logstore_xapi\local\persistent\xapi_record;
+use logstore_xapi\local\queue_monitor\measurements\base as base_measurement;
 
-$plugin->dependencies = [
-    'local_aws' => '2022011300'
-];
+class total_lrs_records extends base_measurement {
+
+    /**
+     * @inheritdoc
+     */
+    public function run() {
+        $this->result = xapi_record::count_records();
+    }
+}
