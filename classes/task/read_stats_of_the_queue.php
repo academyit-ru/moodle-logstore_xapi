@@ -54,6 +54,7 @@ class read_stats_of_the_queue extends scheduled_task {
         mtrace('Nachinau sbor dannih');
         /** @var measurement $measurement */
         foreach($measurements as $measurement) {
+            mtrace('Running measurement: ' . $measurement->get_name());
             $measurement->run();
         }
 
@@ -132,6 +133,7 @@ SQL;
             $qstat->from_measurement($measurement);
             $qstat->set('timemeasured', $now);
             $qstat->save();
+            mtrace(sprintf('Saved stat %s with value: %s', $qstat->get('name'), $qstat->get('val')));
         }
     }
 
