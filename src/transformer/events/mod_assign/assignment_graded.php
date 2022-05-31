@@ -49,6 +49,7 @@ function assignment_graded(array $config, log_event $event) {
     $scorepass = (float) ($gradeitems->gradepass ?: null);
 
     $completion = 'unknown';
+    $success = $scoreraw >= $scorepass;
 
     if ($scoreraw >= $scorepass) {
         $completion = true;
@@ -69,6 +70,7 @@ function assignment_graded(array $config, log_event $event) {
                 'raw' => $scoreraw,
             ],
             'completion' => $completion,
+            'success' => $success,
         ],
         'timestamp' => utils\get_event_timestamp($event),
         'context' => [
