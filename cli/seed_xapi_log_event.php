@@ -127,7 +127,7 @@ $sql = <<<SQL
         AND (
             l.userid IN (SELECT id FROM {user} WHERE auth LIKE :authtype1 AND deleted = 0)
             OR
-            l.relateduserid IN (SELECT id FROM {user} WHERE auth :authtype2 AND deleted = 0)
+            l.relateduserid IN (SELECT id FROM {user} WHERE auth LIKE :authtype2 AND deleted = 0)
         )
     SQL;
 
@@ -135,7 +135,7 @@ $params = [
     'authtype1' => 'untissooauth',
     'authtype2' => 'untissooauth',
 ];
-$params = array_merge($params, $ineventlistparams, $incourselistparams);
+$params = $params +$ineventlistparams +$incourselistparams;
 
 if ($sincedt) {
 $params['since'] = $sincedt->format('U');
