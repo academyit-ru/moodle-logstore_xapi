@@ -31,6 +31,8 @@ use logstore_xapi\local\queue_monitor\measurements\total_attachments;
 use logstore_xapi\local\queue_monitor\measurements\total_lrs_records;
 use logstore_xapi\local\queue_monitor\measurements\total_qitems;
 use logstore_xapi\local\queue_service;
+use text_progress_trace;
+use progress_trace;
 
 class read_stats_of_the_queue extends scheduled_task {
 
@@ -46,22 +48,23 @@ class read_stats_of_the_queue extends scheduled_task {
      */
     public function execute() {
         $measurements = $this->build_measurements_stack();
+        $trace = $this->get_progress_trace();
 
         if ([] === $measurements) {
-            mtrace('Ne nastroeni pokazateli dlya sbora statistiki');
+            $trace->output('Ne nastroeni pokazateli dlya sbora statistiki');
             return;
         }
-        mtrace('Nachinau sbor dannih');
+        $trace->output('Nachinau sbor dannih');
         /** @var measurement $measurement */
         foreach($measurements as $measurement) {
-            mtrace('Running measurement: ' . $measurement->get_name());
+            $trace->output('Running measurement: ' . $measurement->get_name(), 2);
             $measurement->run();
         }
 
-        mtrace('Sohranyau dannie');
+        $trace->output('Sohranyau dannie');
         $this->save_results($measurements);
 
-        mtrace('Procedura zaverchena');
+        $trace->output('Procedura zaverchena');
     }
 
     /**
@@ -69,6 +72,9 @@ class read_stats_of_the_queue extends scheduled_task {
      * @return array
      */
     public function build_measurements_stack(): array {
+        /** @var \moodle_database $DB */
+        global $DB;
+
         $stack = [];
 
         $msrmnt = new total_qitems();
@@ -91,11 +97,7 @@ class read_stats_of_the_queue extends scheduled_task {
         $msrmnt->set_name('total:queueitems_by_status:isbanned');
         $stack[] = $msrmnt;
 
-        $sql = <<<SQL
-        isrunning = 1
-        AND timecompleted = 0
-        AND (NOW() - TO_TIMESTAMP(timestarted) > INTERVAL '24h')
-SQL;
+        $sql = $this->get_stuck_running_filter_sql();
         $msrmnt = (new total_qitems())->set_filter_sql($sql);
         $msrmnt->set_name('total:queueitems_by_status:stuck_running');
         $stack[] = $msrmnt;
@@ -127,14 +129,59 @@ SQL;
      */
     public function save_results(array $measurements) {
         $now = time();
+        $trace = $this->get_progress_trace();
         /** @var measurement $measurement */
         foreach ($measurements as $measurement) {
             $qstat = new queue_stat();
             $qstat->from_measurement($measurement);
             $qstat->set('timemeasured', $now);
             $qstat->save();
-            mtrace(sprintf('Saved stat %s with value: %s', $qstat->get('name'), $qstat->get('val')));
+            $trace->output(sprintf('Saved stat %s with value: %s', $qstat->get('name'), $qstat->get('val')), 2);
         }
     }
 
+    /**
+     * TODO: write docbloc
+     *
+     *
+     */
+    protected function get_stuck_running_filter_sql(): string {
+        /** @var \moodle_database $DB */
+        global $DB;
+
+        $sql = <<<SQL
+        isrunning = 1
+        AND timecompleted = 0
+        AND (NOW() - TO_TIMESTAMP(timestarted) > INTERVAL '24h')
+SQL;
+        if ('mysql' === $DB->get_dbfamily()) {
+            $sql = <<<SQL
+            isrunning = 1
+            AND timecompleted = 0
+            AND TIMESTAMPDIFF(HOUR, FROM_UNIXTIME(timecreated), CURRENT_TIMESTAMP()) > 24;
+SQL;
+        }
+        return $sql;
+    }
+
+    /**
+     *
+     * @return progress_trace
+     */
+    public function get_progress_trace(): progress_trace {
+        if (null === $this->progresstrace) {
+            $this->progresstrace = new text_progress_trace();
+        }
+        return $this->progresstrace;
+    }
+
+    /**
+     * @param progress_trace $trace
+     *
+     * @return self
+     */
+    public function set_progress_trace(progress_trace $trace): self {
+        $this->progresstrace = $trace;
+        return $this;
+    }
 }

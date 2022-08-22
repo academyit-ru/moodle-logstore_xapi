@@ -30,6 +30,11 @@ use logstore_xapi\local\persistent\queue_stat;
 use logstore_xapi\local\queue_monitor\measurements\base as base_measurement;
 use logstore_xapi\task\read_stats_of_the_queue;
 use moodle_database;
+use null_progress_trace;
+
+if (false === defined(PHPUNIT_TEST)) {
+    define('PHPUNIT_TEST', true);
+}
 
 class read_stats_of_the_queue_task_testcase extends advanced_testcase {
 
@@ -48,6 +53,7 @@ class read_stats_of_the_queue_task_testcase extends advanced_testcase {
         $this->assertTrue(0 === queue_stat::count_records());
 
         $task = new read_stats_of_the_queue();
+        $task->set_progress_trace(new null_progress_trace());
 
         $task->execute();
 
@@ -55,9 +61,6 @@ class read_stats_of_the_queue_task_testcase extends advanced_testcase {
     }
 
     public function test_it_saves_results() {
-        /** @var moodle_database $DB */
-        global $DB;
-
         $this->resetAfterTest();
 
         $measurement = new class extends base_measurement {
@@ -71,6 +74,7 @@ class read_stats_of_the_queue_task_testcase extends advanced_testcase {
         };
         $measurement->run();
         $task = new read_stats_of_the_queue();
+        $task->set_progress_trace(new null_progress_trace());
 
         $this->assertEquals(0, queue_stat::count_records());
         $task->save_results([$measurement]);
