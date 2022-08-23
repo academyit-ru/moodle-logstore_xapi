@@ -43,6 +43,12 @@ abstract class file_finder {
             case 'mod_assign':
                 return new file_finder_mod_assign($DB, $fs);
             case 'core':
+            case 'mod_page':
+            case 'mod_url':
+            case 'mod_label':
+            case 'mod_resource':
+            case 'mod_chat':
+            case 'mod_quiz':
                 return new class extends file_finder {
                     public function find_for(log_event $logevent) {
                         return [];
