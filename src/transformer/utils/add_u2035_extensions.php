@@ -17,12 +17,13 @@
 namespace src\transformer\utils;
 
 use coding_exception;
+use logstore_xapi\local\log_event;
 
 defined('MOODLE_INTERNAL') || die();
 
 define('U2035_EXTENSION_PREFIX', 'https://api.2035.university');
 
-function add_u2035_extensions(array $eventstatements, array $eventconfig, \stdClass $eventobj): array {
+function add_u2035_extensions(array $eventstatements, array $eventconfig, log_event $eventobj): array {
 
     $courseid = $eventobj->courseid ?? null;
     if (!$courseid) {
