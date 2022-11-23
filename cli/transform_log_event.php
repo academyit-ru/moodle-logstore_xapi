@@ -100,6 +100,17 @@ class xapi_printer {
             'repo' => new \src\transformer\repos\MoodleRepository($DB),
             'app_url' => $CFG->wwwroot,
         ];
+        $config['add_u2035_extensions'] = false;
+        if (get_config('logstore_xapi', 'add_u2035_extensions')) {
+            $config['add_u2035_extensions'] = true;
+
+            $u2035courseidmap = get_config('logstore_xapi', 'u2035_courseid_map');
+            $config['u2035_courseid_map'] = $u2035courseidmap ? json_decode($u2035courseidmap, true) : [];
+
+            $u2035projectid = get_config('logstore_xapi', 'u2035_project_id');
+            $config['u2035_project_id'] = $u2035projectid ? (int) $u2035projectid : null;
+        }
+
         $transformed = handler($config, [$logevent]);
         $transformed = reset($transformed);
         if (false === isset($transformed['transformed']) || false === $transformed['transformed']) {
