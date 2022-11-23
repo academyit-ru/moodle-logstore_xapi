@@ -29,9 +29,10 @@ function add_u2035_extensions(array $eventstatements, array $eventconfig, log_ev
     if (!$courseid) {
         return [$eventstatements, new coding_exception('add_u2035_extensions: courseid not set in event record')];
     }
+    $courseid = (int) $courseid;
 
-    $u2035courseid = $eventconfig['u2035courseidMap'][$courseid] ?? null;
-    if ($u2035courseid) {
+    $u2035courseid = $eventconfig['u2035_courseid_map'][$courseid] ?? null;
+    if (null === $u2035courseid) {
         return [$eventstatements, new coding_exception('add_u2035_extensions: parent_course_id not set', json_encode(['courseid' => $courseid]))];
     }
 
