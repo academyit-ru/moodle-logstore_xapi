@@ -232,6 +232,7 @@ class publish_attachments_batch_job extends base_batch_job {
         global $DB;
 
         $courseshortname = $DB->get_field('course', 'shortname', ['id' => $logevent->courseid], MUST_EXIST);
+        $courseshortname = str_replace(' ', '_', $courseshortname);
         $courseshortnametranslit = core_text::convert($courseshortname, 'utf-8', 'ascii');
         $cmid = $logevent->contextinstanceid;
         $untiid = $DB->get_field(
