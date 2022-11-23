@@ -25,6 +25,7 @@ function handler(array $config, array $events) {
 
     $transformedevents = array_map(function ($event) use ($config, $eventfunctionmap) {
         $eventobj = (object) $event;
+        $eventstatements = [];
         try {
             $eventname = $eventobj->eventname;
             if (isset($eventfunctionmap[$eventname])) {
@@ -34,8 +35,12 @@ function handler(array $config, array $events) {
                     'event_function' => $eventfunction,
                 ], $config);
                 $eventstatements = $eventfunction($eventconfig, $eventobj);
-            } else {
-                $eventstatements = [];
+                if (true === isset($config['add_u2035_extensions']) && (bool) $config['add_u2035_extensions']) {
+                    list($eventstatements, $err) = \src\transformer\utils\add_u2035_extensions($eventstatements, $eventconfig, $eventobj);
+                    if (null !== $err) {
+                        throw $err;
+                    }
+                }
             }
 
             // Returns successfully transformed event with its statements.

@@ -139,6 +139,17 @@ class emit_statements_batch_job extends base_batch_job {
             ],
         ];
 
+        $handlerconfig['transformer']['add_u2035_extensions'] = false;
+        if (get_config('logstore_xapi', 'add_u2035_extensions')) {
+            $handlerconfig['transformer']['add_u2035_extensions'] = true;
+
+            $u2035courseidmap = get_config('logstore_xapi', 'u2035_courseid_map');
+            $handlerconfig['transformer']['u2035_courseid_map'] = $u2035courseidmap ? json_decode($u2035courseidmap, true) : [];
+
+            $u2035projectid = get_config('logstore_xapi', 'u2035_project_id');
+            $handlerconfig['transformer']['u2035_project_id'] = $u2035projectid ? (int) $u2035projectid : null;
+        }
+
         mtrace('Start handling log events...');
         $loadedevents = \src\handler($handlerconfig, $this->get_events());
         $failed = $this->filter_failed_statements($loadedevents);
