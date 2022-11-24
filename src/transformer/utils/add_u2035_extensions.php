@@ -49,7 +49,15 @@ function add_u2035_extensions(array $eventstatements, array $eventconfig, log_ev
         // U2035_EXTENSION_PREFIX . '/previous_event_uuid' => null,
     ];
 
-    $eventstatements = array_map(function($eventstatement) use ($u2035extensions) {
+    $eventstatements = array_map(function($eventstatement) use ($u2035extensions, $eventconfig, $eventobj) {
+        if (false === isset($eventstatement['context'])) {
+            $logerror = $eventconfig['log_error'];
+            $logerror(
+                'add_u2035_extensions: У xAPI-выражения отсутствует поле context debuginfo: '
+                . json_encode(['statement' => $eventstatement, 'eventobj' => $eventobj])
+            );
+            return $eventstatement;
+        }
         if (false === isset($eventstatement['context']['extensions'])) {
             $eventstatement['context'] = [
                 'extensions' => []
