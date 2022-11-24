@@ -165,6 +165,61 @@ class emit_statements_batch_job_testcase extends advanced_testcase {
      *
      *
      */
+    public function test_job_runs_with_add_u2035_extensions_setting_enabled() {
+        /** @var moodle_database $DB */
+        global $DB;
+
+        $this->resetAfterTest();
+
+        $student = $this->getDataGenerator()->create_user();
+        $teacher = $this->getDataGenerator()->create_user();
+        $course1 = $this->getDataGenerator()->create_course();
+        $assignparams = [
+            'course' => $course1->id,
+            'assignsubmission_file_enabled' => 1,
+            'assignsubmission_file_maxfiles' => 1,
+            'assignsubmission_file_maxsizebytes' => 10
+        ];
+        $assign = $this->getDataGenerator()->create_module('assign', $assignparams);
+        $this->getDataGenerator()->enrol_user($student->id, $course1->id);
+        $this->getDataGenerator()->enrol_user($teacher->id, $course1->id, $this->teacherroleid);
+        $this->create_log_events($student, $teacher, $assign, $course1);
+        $this->create_queue_items();
+
+        set_config('add_u2035_extensions', true, 'logstore_xapi');
+        set_config('u2035_courseid_map', json_encode([$course1->id => 111]), 'logstore_xapi');
+        set_config('u2035_project_id', 69, 'logstore_xapi');
+
+        $queueservice = queue_service::instance();
+        $queuerecords = $queueservice->pop(emit_statement::DEFAULT_BATCH_SIZE, queue_service::QUEUE_EMIT_STATEMENTS);
+
+        $job = new emit_statements_batch_job($queuerecords, $DB);
+        $job->set_loader([$this, 'loader']);
+        $job->run();
+
+        $this->assertEquals(log_event::count_records(), xapi_record::count_records());
+        $this->assertEquals(0, xapi_record::count_records(['lrs_uuid' => NULL]));
+        $this->assertEquals(0, xapi_record::count_records_select('body IS NULL'));
+
+        $this->assertCount(3, $job->result_success());
+        $this->assertCount(0, $job->result_error());
+
+        $this->expectOutputRegex('/-- Registered events ' . 3 . '/');
+
+        foreach (xapi_record::get_records() as $xapirecord) {
+            $body = json_decode($xapirecord->get('body'), true);
+            $statement = reset($body);
+            $this->assertTrue(isset($statement['context']['extensions']['https://api.2035.university/parent_course_id']));
+            $this->assertTrue(isset($statement['context']['extensions']['https://api.2035.university/project_id']));
+            $this->assertEquals(111, $statement['context']['extensions']['https://api.2035.university/parent_course_id']);
+            $this->assertEquals(69, $statement['context']['extensions']['https://api.2035.university/project_id']);
+        }
+    }
+
+    /**
+     *
+     *
+     */
     protected function create_log_events($student, $teacher, $assignrecord, $course) {
         /** @var moodle_database $DB */
         global $DB;
