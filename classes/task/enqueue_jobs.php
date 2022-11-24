@@ -27,6 +27,7 @@ namespace logstore_xapi\task;
 use core_date;
 use DateTimeImmutable;
 use logstore_xapi\local\log_event;
+use logstore_xapi\local\persistent\xapi_attachment;
 use logstore_xapi\local\queue_service;
 use moodle_database;
 use moodle_exception;
@@ -142,7 +143,7 @@ SQL;
             queue_service::QUEUE_PUBLISH_ATTACHMENTS => [],
         ];
         foreach ($events as $event) {
-            if ($event->has_attachments()) {
+            if ($event->has_attachments() && xapi_attachment::is_registered_for($event)) {
                 $map[queue_service::QUEUE_PUBLISH_ATTACHMENTS][] = $event;
             } else {
                 $map[queue_service::QUEUE_EMIT_STATEMENTS][] = $event;

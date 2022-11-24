@@ -28,6 +28,7 @@ namespace logstore_xapi\local\persistent;
 defined('MOODLE_INTERNAL') || die();
 
 use core\persistent;
+use logstore_xapi\local\log_event;
 
 class xapi_attachment extends persistent {
 
@@ -89,5 +90,24 @@ class xapi_attachment extends persistent {
      */
     protected function get_s3_filesize() {
         return (int) $this->raw_get('s3_filesize');
+    }
+
+    /**
+     * @param log_event $event
+     *
+     * @return bool
+     */
+    public static function is_registered_for(log_event $event) {
+        /** @var \moodle_database $DB */
+        global $DB;
+
+        $select = <<<SQL
+            eventid = :eventid
+            AND s3_sha2 IS NOT NULL
+        SQL;
+
+        $params = ['eventid' => $event->id];
+
+        return (bool) $DB->record_exists_select(static::TABLE, $select, $params);
     }
 }
