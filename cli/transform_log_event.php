@@ -172,6 +172,7 @@ Options:
     --id=<logid>    id записи из таблицы логов Moodle
     --out=<path>    путь к файлу куда нужно сохранить вывод
     --pretty        Вывод следа форматированием (не в одну строку)
+	--use_standard_log
 
 Examples:
 
@@ -183,6 +184,7 @@ list($options, $unrecognised) = cli_get_params([
     'id'     => null,
     'out'    => null,
     'pretty' => false,
+	'use_standard_log' => false,
 ], [
     'h' => 'help'
 ]);
@@ -201,8 +203,13 @@ if (null === $options['id']) {
     exit(3);
 }
 
+$table = \logstore_xapi\local\log_event::TABLE;
+if ($options['use_standard_log']) {
+	$table = 'logstore_standard_log';
+}
+
 /** @var moodle_database $DB */
-$logrecord = $DB->get_record('logstore_standard_log', ['id' => $options['id']]);
+$logrecord = $DB->get_record($table, ['id' => $options['id']]);
 
 if (!$logrecord) {
     cli_error('Log record not found');
