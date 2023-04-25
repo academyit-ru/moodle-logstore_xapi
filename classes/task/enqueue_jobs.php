@@ -144,7 +144,7 @@ SQL;
         ];
         /** @var log_event $event */
         foreach ($events as $event) {
-            if ($event->has_attachments() && xapi_attachment::is_registered_for($event)) {
+            if ($event->has_attachments() && !xapi_attachment::is_registered_for($event)) {
                 $queueName = queue_service::QUEUE_PUBLISH_ATTACHMENTS;
                 $map[$queueName][] = $event;
             } else {
