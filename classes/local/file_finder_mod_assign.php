@@ -76,7 +76,7 @@ class file_finder_mod_assign extends file_finder {
                 if ($records) {
                     $submission = reset($records);
                 }
-                return $this->fs->get_area_files(
+                $files = $this->fs->get_area_files(
                     $logevent->contextid,
                     'assignsubmission_file',        // $component
                     ASSIGNSUBMISSION_FILE_FILEAREA, // $filearea
@@ -84,6 +84,17 @@ class file_finder_mod_assign extends file_finder {
                     "id",                           // $sort
                     false                           // $includedirs
                 );
+                $logcontext = [
+                    'event' => [
+                        'id' => $logevent->id,
+                        'component' => $logevent->component,
+                        'eventname' => $logevent->eventname,
+                    ],
+                    'files_count' => count($files)
+                ];
+                error_log(sprintf('[LOGSTORE_XAPI][DEBUG]: file_finder::find_for() context: %s', json_encode($logcontext)));
+
+                return $files;
             default:
                 return [];
         }

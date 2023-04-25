@@ -142,12 +142,17 @@ SQL;
             queue_service::QUEUE_EMIT_STATEMENTS => [],
             queue_service::QUEUE_PUBLISH_ATTACHMENTS => [],
         ];
+        /** @var log_event $event */
         foreach ($events as $event) {
             if ($event->has_attachments() && xapi_attachment::is_registered_for($event)) {
-                $map[queue_service::QUEUE_PUBLISH_ATTACHMENTS][] = $event;
+                $queueName = queue_service::QUEUE_PUBLISH_ATTACHMENTS;
+                $map[$queueName][] = $event;
             } else {
-                $map[queue_service::QUEUE_EMIT_STATEMENTS][] = $event;
+                $queueName = queue_service::QUEUE_EMIT_STATEMENTS;
+                $map[$queueName][] = $event;
             }
+            $logcontext = ['event' => ['id' => $event->id, 'component' => $event->component, 'eventname' => $event->eventname], 'queue' => $queueName];
+            error_log(sprintf('[LOGSTORE_XAPI][DEBUG]: Event was mapped to the queue. context: %s', json_encode($logcontext)));
         }
         foreach ($map as $queuename => $events) {
             $tuples[] = [$events, $queuename];

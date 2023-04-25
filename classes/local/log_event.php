@@ -79,6 +79,15 @@ class log_event implements ArrayAccess {
         /** @var file_finder_mod_assign */
         try {
             $filefinder = file_finder::factory($this);
+            $logcontext = [
+                'logid' => $this->record->id,
+                'component' => $this->record->component,
+                'eventname' => $this->record->eventname,
+                'filefinder' => get_class($filefinder)
+            ];
+            $logcontext = ['event' => ['id' => $this->record->id, 'component' => $this->record->component, 'eventname' => $this->record->eventname], 'filefinder' => get_class($filefinder)];
+            error_log(sprintf('[LOGSTORE_XAPI][DEBUG]: Log event filefinder context: %s', json_encode($logcontext)));
+
             return $filefinder->has_attachments($this);
         } catch (moodle_exception $e) {
             if (debugging() && !PHPUNIT_TEST) {

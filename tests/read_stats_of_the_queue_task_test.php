@@ -32,7 +32,7 @@ use logstore_xapi\task\read_stats_of_the_queue;
 use moodle_database;
 use null_progress_trace;
 
-if (false === defined(PHPUNIT_TEST)) {
+if (false === defined('PHPUNIT_TEST')) {
     define('PHPUNIT_TEST', true);
 }
 

@@ -108,6 +108,11 @@ class xapi_attachment extends persistent {
 
         $params = ['eventid' => $event->id];
 
-        return (bool) $DB->record_exists_select(static::TABLE, $select, $params);
+        $result = $DB->record_exists_select(static::TABLE, $select, $params);
+
+        $logcontext = ['event' => ['id' => $event->id, 'component' => $event->component, 'eventname' => $event->eventname], 'has_attachment' => (bool) $result];
+        error_log(sprintf('[LOGSTORE_XAPI][DEBUG]: xapi_attachment::is_registered_for(). context: %s', json_encode($logcontext)));
+
+        return (bool) $result;
     }
 }
