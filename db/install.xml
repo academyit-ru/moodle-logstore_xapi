@@ -138,7 +138,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Название параметра"/>
-        <FIELD NAME="val" TYPE="number" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="4" COMMENT="Значение параметра"/>
+        <FIELD NAME="val" TYPE="number" LENGTH="20" NOTNULL="true" SEQUENCE="false" DECIMALS="4" COMMENT="Значение параметра"/>
         <FIELD NAME="meta" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="метаданные"/>
         <FIELD NAME="timemeasured" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="Дата время сбора данных"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false"/>
