@@ -27,6 +27,7 @@ namespace logstore_xapi\local\queue_monitor\measurements;
 
 use logstore_xapi\local\persistent\xapi_attachment;
 use logstore_xapi\local\queue_monitor\measurements\base as base_measurement;
+use Throwable;
 
 class total_attachments extends base_measurement {
 
@@ -34,6 +35,10 @@ class total_attachments extends base_measurement {
      * @inheritdoc
      */
     public function run() {
-        $this->result = xapi_attachment::count_records();
+        try {
+            $this->result = xapi_attachment::count_records();
+        } catch (Throwable $e) {
+            $this->error = $e;
+        }
     }
 }

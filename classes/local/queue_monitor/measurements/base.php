@@ -58,6 +58,10 @@ abstract class base {
         return $this->error;
     }
 
+    public function has_error() {
+        return null !== $this->error;
+    }
+
     /**
      * @return mixed
      */

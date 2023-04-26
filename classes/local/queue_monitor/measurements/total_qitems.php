@@ -27,6 +27,7 @@ namespace logstore_xapi\local\queue_monitor\measurements;
 
 use logstore_xapi\local\persistent\queue_item;
 use logstore_xapi\local\queue_monitor\measurements\base as base_measurement;
+use Throwable;
 
 class total_qitems extends base_measurement {
 
@@ -80,10 +81,14 @@ class total_qitems extends base_measurement {
      * @inheritdoc
      */
     public function run() {
-        if ($this->sql) {
-            $this->result = queue_item::count_records_select($this->sql, $this->sqlparams);
-        } else {
-            $this->result = queue_item::count_records($this->filters);
+        try {
+            if ($this->sql) {
+                $this->result = queue_item::count_records_select($this->sql, $this->sqlparams);
+            } else {
+                $this->result = queue_item::count_records($this->filters);
+            }
+        } catch (Throwable $e) {
+            $this->error = $e;
         }
     }
 }

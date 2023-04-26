@@ -24,7 +24,9 @@
  */
 namespace logstore_xapi\task;
 
+use combined_progress_trace;
 use core\task\scheduled_task;
+use error_log_progress_trace;
 use logstore_xapi\local\persistent\queue_stat;
 use logstore_xapi\local\queue_monitor\measurements\base as measurement;
 use logstore_xapi\local\queue_monitor\measurements\total_attachments;
@@ -33,8 +35,14 @@ use logstore_xapi\local\queue_monitor\measurements\total_qitems;
 use logstore_xapi\local\queue_service;
 use text_progress_trace;
 use progress_trace;
+use Throwable;
 
 class read_stats_of_the_queue extends scheduled_task {
+
+    /**
+     * @var progress_trace
+     */
+    protected $progresstrace;
 
     /**
      * @inheritdoc
@@ -59,6 +67,17 @@ class read_stats_of_the_queue extends scheduled_task {
         foreach($measurements as $measurement) {
             $trace->output('Running measurement: ' . $measurement->get_name(), 2);
             $measurement->run();
+            if ($measurement->has_error()) {
+                $error = $measurement->get_error();
+                $logcontext = json_encode(
+                    [
+                        'error' => (string) $error,
+                        'measurement' => [
+                            'name' => $measurement->get_name()
+                        ]
+                    ]);
+                $trace->output(sprintf('[ERROR]: Sbor dannih pokazatelya vizval oshibku. context: %s', $logcontext));
+            }
         }
 
         $trace->output('Sohranyau dannie');
@@ -132,11 +151,22 @@ SQL;
         $trace = $this->get_progress_trace();
         /** @var measurement $measurement */
         foreach ($measurements as $measurement) {
-            $qstat = new queue_stat();
-            $qstat->from_measurement($measurement);
-            $qstat->set('timemeasured', $now);
-            $qstat->save();
-            $trace->output(sprintf('Saved stat %s with value: %s', $qstat->get('name'), $qstat->get('val')), 2);
+            try {
+                $qstat = new queue_stat();
+                $qstat->from_measurement($measurement);
+                $qstat->set('timemeasured', $now);
+                $qstat->save();
+                $trace->output(sprintf('[INFO]: Dannie pokazatelya sohraneni. context: %s', json_encode(['name' => $qstat->get('name'), 'val' => $qstat->get('val')])), 2);
+            } catch (Throwable $e) {
+                $logcontext = [
+                    'exception' => $e->getMessage(),
+                    'measurement' => [
+                        'name' => $measurement->get_name(),
+                        'error' => $measurement->get_error()
+                    ]
+                ];
+                $trace->output(sprintf('[ERROR]: Oshibka pri sohranenii dannih pokazatelya. context: %s', json_encode($logcontext)));
+            }
         }
     }
 
@@ -170,7 +200,10 @@ SQL;
      */
     public function get_progress_trace(): progress_trace {
         if (null === $this->progresstrace) {
-            $this->progresstrace = new text_progress_trace();
+            $this->progresstrace = new combined_progress_trace([
+                new error_log_progress_trace('[LOGSTORE_XAPI]'),
+                new text_progress_trace()
+            ]);
         }
         return $this->progresstrace;
     }
