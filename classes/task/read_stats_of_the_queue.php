@@ -33,6 +33,7 @@ use logstore_xapi\local\queue_monitor\measurements\total_attachments;
 use logstore_xapi\local\queue_monitor\measurements\total_lrs_records;
 use logstore_xapi\local\queue_monitor\measurements\total_qitems;
 use logstore_xapi\local\queue_service;
+use moodle_exception;
 use text_progress_trace;
 use progress_trace;
 use Throwable;
@@ -75,7 +76,7 @@ class read_stats_of_the_queue extends scheduled_task {
                         'measurement' => [
                             'name' => $measurement->get_name()
                         ]
-                    ]);
+                    ], JSON_UNESCAPED_UNICODE);
                 $trace->output(sprintf('[ERROR]: Sbor dannih pokazatelya vizval oshibku. context: %s', $logcontext));
             }
         }
@@ -156,16 +157,23 @@ SQL;
                 $qstat->from_measurement($measurement);
                 $qstat->set('timemeasured', $now);
                 $qstat->save();
-                $trace->output(sprintf('[INFO]: Dannie pokazatelya sohraneni. context: %s', json_encode(['name' => $qstat->get('name'), 'val' => $qstat->get('val')])), 2);
+                $logcontext = ['name' => $qstat->get('name'), 'val' => $qstat->get('val')];
+                $trace->output(sprintf('[INFO]: Dannie pokazatelya sohraneni. context: %s', json_encode($logcontext, JSON_UNESCAPED_UNICODE)), 2);
             } catch (Throwable $e) {
                 $logcontext = [
                     'exception' => $e->getMessage(),
                     'measurement' => [
                         'name' => $measurement->get_name(),
+                        'val' => $measurement->get_result(),
                         'error' => $measurement->get_error()
                     ]
                 ];
-                $trace->output(sprintf('[ERROR]: Oshibka pri sohranenii dannih pokazatelya. context: %s', json_encode($logcontext)));
+                if ($e instanceof moodle_exception) {
+                    $logcontext['debuginfo'] = $e->debuginfo;
+                }
+
+                $trace->output(sprintf('[ERROR]: Oshibka pri sohranenii dannih pokazatelya. context: %s', json_encode($logcontext, JSON_UNESCAPED_UNICODE)));
+                throw $e; // Так в журнале фоновой задачи будет видна проблема
             }
         }
     }
